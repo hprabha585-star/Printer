@@ -1,0 +1,4 @@
+requests>=2.31.0
+
+# Windows only — uncomment when installing on the shop PC if it runs Windows:
+# pywin32>=306

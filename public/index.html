@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quick Print — Upload &amp; Pay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Archivo:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #ECE7D8;
+    --paper-card: #F8F5EC;
+    --ink: #17223B;
+    --ink-soft: #4B5468;
+    --stamp: #A6291B;
+    --stamp-dark: #7E1E13;
+    --ok: #2F6846;
+    --rule: #C9C2AC;
+    --shadow: rgba(23,34,59,0.14);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Archivo', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(23,34,59,0.06) 1px, transparent 0);
+    background-size: 14px 14px;
+    min-height: 100vh;
+    padding: 28px 16px 60px;
+  }
+
+  .wrap { max-width: 480px; margin: 0 auto; }
+
+  header.hero {
+    text-align: left;
+    margin-bottom: 22px;
+    padding: 0 4px;
+  }
+  header.hero .eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--stamp);
+    letter-spacing: 0.02em;
+  }
+  header.hero h1 {
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1.05;
+    margin: 4px 0 6px;
+    letter-spacing: -0.01em;
+  }
+  header.hero p {
+    color: var(--ink-soft);
+    font-size: 14.5px;
+    margin: 0;
+    max-width: 34ch;
+  }
+
+  /* --- Receipt card --- */
+  .receipt {
+    background: var(--paper-card);
+    border-radius: 3px;
+    box-shadow: 0 18px 40px -18px var(--shadow), 0 2px 0 var(--rule);
+    position: relative;
+    padding: 26px 22px 22px;
+  }
+  .receipt::before,
+  .receipt::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    height: 10px;
+    background:
+      radial-gradient(circle at 10px 5px, var(--paper) 5px, transparent 5.5px) repeat-x;
+    background-size: 20px 10px;
+  }
+  .receipt::before { top: -5px; }
+  .receipt::after { bottom: -5px; transform: scaleY(-1); }
+
+  .field { margin-bottom: 18px; }
+  .field label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    text-transform: none;
+    margin-bottom: 7px;
+  }
+
+  .dropzone {
+    border: 1.5px dashed var(--rule);
+    border-radius: 4px;
+    padding: 20px 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+    background: rgba(23,34,59,0.02);
+  }
+  .dropzone.has-file { border-color: var(--ok); background: rgba(47,104,70,0.06); }
+  .dropzone:focus-within { outline: 2px solid var(--stamp); outline-offset: 2px; }
+  .dropzone input[type="file"] { display: none; }
+  .dropzone .dz-title { font-weight: 700; font-size: 14.5px; }
+  .dropzone .dz-sub { font-size: 12.5px; color: var(--ink-soft); margin-top: 3px; }
+  .dropzone .dz-file { font-family: 'Space Mono', monospace; font-size: 12.5px; margin-top: 8px; word-break: break-all; }
+
+  .seg {
+    display: flex;
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .seg button {
+    flex: 1;
+    padding: 11px 8px;
+    background: transparent;
+    border: none;
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+    cursor: pointer;
+    border-right: 1.5px solid var(--ink);
+  }
+  .seg button:last-child { border-right: none; }
+  .seg button.active { background: var(--ink); color: var(--paper-card); }
+
+  .row2 { display: flex; gap: 12px; }
+  .row2 .field { flex: 1; }
+
+  input[type="number"], input[type="text"], select {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1.5px solid var(--rule);
+    border-radius: 4px;
+    font-family: 'Space Mono', monospace;
+    font-size: 14.5px;
+    color: var(--ink);
+    background: #fff;
+  }
+  input:focus, select:focus { outline: 2px solid var(--stamp); outline-offset: 1px; border-color: var(--stamp); }
+
+  .stepper { display: flex; align-items: center; gap: 10px; }
+  .stepper button {
+    width: 38px; height: 38px;
+    border-radius: 4px;
+    border: 1.5px solid var(--ink);
+    background: var(--paper-card);
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .stepper input { text-align: center; }
+
+  .divider {
+    border: none;
+    border-top: 1.5px dashed var(--rule);
+    margin: 20px 0;
+  }
+
+  .price-line {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .price-line.total {
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 19px;
+    margin-top: 10px;
+    padding-top: 12px;
+    border-top: 1.5px solid var(--ink);
+  }
+  .price-line.total .amt::before { content: "₹"; }
+
+  .btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 15px 14px;
+    border-radius: 4px;
+    border: none;
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    font-size: 15.5px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: var(--stamp);
+    color: #fff;
+  }
+  .btn-primary:active { background: var(--stamp-dark); }
+  .btn-primary:disabled { background: #C7BFAE; color: #8a8375; cursor: not-allowed; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 1.5px solid var(--ink);
+    margin-top: 10px;
+  }
+
+  .helper { font-size: 12px; color: var(--ink-soft); margin-top: 7px; line-height: 1.5; }
+
+  .token {
+    font-family: 'Space Mono', monospace;
+    background: var(--ink);
+    color: var(--paper-card);
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.03em;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12.5px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    border: 1.5px solid var(--rule);
+  }
+  .status-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-soft); }
+  .status-pill.ok { border-color: var(--ok); color: var(--ok); }
+  .status-pill.ok .dot { background: var(--ok); }
+  .status-pill.wait .dot { animation: pulse 1.4s infinite ease-in-out; }
+
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+  .step-hidden { display: none; }
+
+  .error-box {
+    background: #F6E4E1;
+    border: 1.5px solid var(--stamp);
+    color: var(--stamp-dark);
+    padding: 10px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  footer.note {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 12px;
+    margin-top: 20px;
+    padding: 0 10px;
+  }
+  footer.note a { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">SELF-SERVICE COUNTER</div>
+    <h1 id="shopNameHeading">Quick Print Xerox</h1>
+    <p>Upload your file, pick your print settings, pay by UPI, and collect it printed at the counter. No login needed.</p>
+  </header>
+
+  <!-- STEP 1: Upload + configure + pay -->
+  <section class="receipt" id="stepOrder">
+    <div class="error-box" id="orderError"></div>
+
+    <div class="field">
+      <label for="fileInput">Your document</label>
+      <label class="dropzone" id="dropzone" for="fileInput">
+        <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.ppt,.pptx,.xls,.xlsx,.txt" />
+        <div class="dz-title">Tap to choose a file</div>
+        <div class="dz-sub">PDF, Word, Excel, PowerPoint, JPG or PNG · up to 25 MB</div>
+        <div class="dz-file" id="dzFileName"></div>
+      </label>
+    </div>
+
+    <div class="field">
+      <label>Print type</label>
+      <div class="seg" id="printTypeSeg">
+        <button type="button" data-value="bw" class="active">Black &amp; White</button>
+        <button type="button" data-value="color">Color</button>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="pagesInput">Pages to print</label>
+        <div class="stepper">
+          <button type="button" id="pagesMinus" aria-label="Decrease pages">–</button>
+          <input type="number" id="pagesInput" min="1" value="1" />
+          <button type="button" id="pagesPlus" aria-label="Increase pages">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="copiesInput">Copies</label>
+        <div class="stepper">
+          <button type="button" id="copiesMinus" aria-label="Decrease copies">–</button>
+          <input type="number" id="copiesInput" min="1" value="1" />
+          <button type="button" id="copiesPlus" aria-label="Increase copies">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="rangeInput">Page range (optional)</label>
+      <input type="text" id="rangeInput" placeholder="e.g. all, or 1-3,5,9" />
+      <div class="helper">Leave as "all" to print every page. Only used to tell the shop which pages — the page count above is what you're billed for.</div>
+    </div>
+
+    <div class="field">
+      <label for="noteInput">Note for the shop (optional)</label>
+      <input type="text" id="noteInput" placeholder="e.g. staple, or double-sided" />
+    </div>
+
+    <hr class="divider" />
+
+    <div class="price-line"><span id="priceRateLabel">Rate — B&amp;W</span><span id="priceRate">₹0.00 / page</span></div>
+    <div class="price-line"><span id="priceQtyLabel">Pages × copies</span><span id="priceQty">1 × 1</span></div>
+    <div class="price-line total"><span>Total due</span><span class="amt" id="priceTotal">0.00</span></div>
+
+    <button class="btn btn-primary" id="createJobBtn" disabled>Choose a file to continue</button>
+  </section>
+
+  <!-- STEP 2: Pay via UPI -->
+  <section class="receipt step-hidden" id="stepPay" style="margin-top:18px;">
+    <div class="error-box" id="payError"></div>
+    <div class="field">
+      <label>Order token</label>
+      <span class="token" id="tokenDisplay">PX-0000</span>
+    </div>
+    <div class="price-line total" style="margin-top:0;"><span>Amount to pay</span><span class="amt" id="payAmount">0.00</span></div>
+    <p class="helper" style="margin-top:14px;">Tap below to open your UPI app and pay <b id="payToName">the shop</b>. After paying, copy the UTR / transaction reference number shown in your UPI app and enter it here to release your job to the print queue.</p>
+
+    <a class="btn btn-primary" id="upiPayBtn" href="#" target="_blank" rel="noopener" style="margin-top:14px;">Pay with UPI app</a>
+
+    <div class="field" style="margin-top:18px;">
+      <label for="utrInput">UPI transaction reference (UTR)</label>
+      <input type="text" id="utrInput" placeholder="e.g. 402917563210" />
+    </div>
+
+    <button class="btn btn-primary" id="confirmPayBtn">I've paid — submit for printing</button>
+    <button class="btn btn-ghost" id="cancelPayBtn">Back / edit order</button>
+  </section>
+
+  <!-- STEP 3: Status -->
+  <section class="receipt step-hidden" id="stepStatus" style="margin-top:18px;">
+    <div class="field">
+      <label>Order token</label>
+      <span class="token" id="statusToken">PX-0000</span>
+    </div>
+    <div class="field" style="margin-top:16px;">
+      <label>Status</label>
+      <span class="status-pill wait" id="statusPill"><span class="dot"></span><span id="statusText">Waiting for payment confirmation</span></span>
+    </div>
+    <p class="helper" id="statusHelper" style="margin-top:14px;">Keep this page open. It refreshes automatically. Show your token at the counter once it says "Printed".</p>
+    <button class="btn btn-ghost" id="newOrderBtn" style="margin-top:14px;">Start a new order</button>
+  </section>
+
+  <footer class="note">Prices are set by the shop and may change without notice. Payments are verified against your UPI transaction reference before printing begins.</footer>
+</div>
+
+<script>
+(function () {
+  const API = ''; // same origin
+  let settings = null;
+  let selectedFile = null;
+  let printType = 'bw';
+  let currentJob = null;
+  let statusPoll = null;
+
+  const $ = (id) => document.getElementById(id);
+
+  // ---- Load pricing on page load ----
+  async function loadSettings() {
+    try {
+      const res = await fetch(`${API}/api/settings`);
+      settings = await res.json();
+      $('shopNameHeading').textContent = settings.shopName || 'Quick Print Xerox';
+      $('payToName').textContent = settings.owner_display_name || settings.shopName || 'the shop';
+      recalcPrice();
+    } catch (e) {
+      showError('orderError', 'Could not load shop pricing. Check your connection and reload.');
+    }
+  }
+
+  function showError(id, msg) {
+    const box = $(id);
+    box.textContent = msg;
+    box.style.display = msg ? 'block' : 'none';
+  }
+
+  // ---- File selection ----
+  $('fileInput').addEventListener('change', (e) => {
+    selectedFile = e.target.files[0] || null;
+    const dz = $('dropzone');
+    if (selectedFile) {
+      dz.classList.add('has-file');
+      $('dzFileName').textContent = selectedFile.name;
+      $('createJobBtn').disabled = false;
+      $('createJobBtn').textContent = 'Continue to payment';
+    } else {
+      dz.classList.remove('has-file');
+      $('dzFileName').textContent = '';
+      $('createJobBtn').disabled = true;
+      $('createJobBtn').textContent = 'Choose a file to continue';
+    }
+  });
+
+  // ---- Print type toggle ----
+  $('printTypeSeg').addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    [...$('printTypeSeg').children].forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    printType = btn.dataset.value;
+    recalcPrice();
+  });
+
+  // ---- Steppers ----
+  function stepper(inputId, minusId, plusId) {
+    $(minusId).addEventListener('click', () => {
+      const inp = $(inputId);
+      inp.value = Math.max(1, (parseInt(inp.value, 10) || 1) - 1);
+      recalcPrice();
+    });
+    $(plusId).addEventListener('click', () => {
+      const inp = $(inputId);
+      inp.value = (parseInt(inp.value, 10) || 1) + 1;
+      recalcPrice();
+    });
+    $(inputId).addEventListener('input', recalcPrice);
+  }
+  stepper('pagesInput', 'pagesMinus', 'pagesPlus');
+  stepper('copiesInput', 'copiesMinus', 'copiesPlus');
+
+  // ---- Live price calc ----
+  function recalcPrice() {
+    if (!settings) return;
+    const pages = Math.max(1, parseInt($('pagesInput').value, 10) || 1);
+    const copies = Math.max(1, parseInt($('copiesInput').value, 10) || 1);
+    const rate = printType === 'color' ? settings.color_price_per_page : settings.bw_price_per_page;
+    const total = rate * pages * copies;
+
+    $('priceRateLabel').textContent = `Rate — ${printType === 'color' ? 'Color' : 'B&W'}`;
+    $('priceRate').textContent = `₹${rate.toFixed(2)} / page`;
+    $('priceQtyLabel').textContent = 'Pages × copies';
+    $('priceQty').textContent = `${pages} × ${copies}`;
+    $('priceTotal').textContent = total.toFixed(2);
+  }
+
+  // ---- Create job ----
+  $('createJobBtn').addEventListener('click', async () => {
+    showError('orderError', '');
+    if (!selectedFile) return;
+
+    $('createJobBtn').disabled = true;
+    $('createJobBtn').textContent = 'Uploading…';
+
+    const fd = new FormData();
+    fd.append('file', selectedFile);
+    fd.append('printType', printType);
+    fd.append('copies', $('copiesInput').value);
+    fd.append('pageRange', $('rangeInput').value || 'all');
+    fd.append('totalPages', $('pagesInput').value);
+    fd.append('customerNote', $('noteInput').value || '');
+
+    try {
+      const res = await fetch(`${API}/api/jobs/create`, { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+      currentJob = data;
+      goToPay();
+    } catch (e) {
+      showError('orderError', e.message);
+      $('createJobBtn').disabled = false;
+      $('createJobBtn').textContent = 'Continue to payment';
+    }
+  });
+
+  // ---- Step 2: Pay ----
+  function goToPay() {
+    $('stepOrder').classList.add('step-hidden');
+    $('stepPay').classList.remove('step-hidden');
+    showError('payError', '');
+
+    $('tokenDisplay').textContent = currentJob.tokenId;
+    $('payAmount').textContent = currentJob.totalAmount.toFixed(2);
+
+    const upiId = settings.owner_upi_id;
+    const payeeName = encodeURIComponent(settings.owner_display_name || settings.shopName || 'Print Shop');
+    const amount = currentJob.totalAmount.toFixed(2);
+    const note = encodeURIComponent(`Print job ${currentJob.tokenId}`);
+    const upiLink = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${payeeName}&am=${amount}&cu=INR&tn=${note}`;
+    $('upiPayBtn').setAttribute('href', upiLink);
+  }
+
+  $('cancelPayBtn').addEventListener('click', () => {
+    $('stepPay').classList.add('step-hidden');
+    $('stepOrder').classList.remove('step-hidden');
+  });
+
+  $('confirmPayBtn').addEventListener('click', async () => {
+    showError('payError', '');
+    const utr = $('utrInput').value.trim();
+    if (utr.length < 4) {
+      showError('payError', 'Enter the UPI transaction reference (UTR) shown in your payment app.');
+      return;
+    }
+    $('confirmPayBtn').disabled = true;
+    $('confirmPayBtn').textContent = 'Submitting…';
+
+    try {
+      const res = await fetch(`${API}/api/jobs/${currentJob._id}/pay`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ utr }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not submit payment');
+      currentJob = data;
+      goToStatus();
+    } catch (e) {
+      showError('payError', e.message);
+    } finally {
+      $('confirmPayBtn').disabled = false;
+      $('confirmPayBtn').textContent = "I've paid — submit for printing";
+    }
+  });
+
+  // ---- Step 3: Status polling ----
+  function goToStatus() {
+    $('stepPay').classList.add('step-hidden');
+    $('stepStatus').classList.remove('step-hidden');
+    $('statusToken').textContent = currentJob.tokenId;
+    renderStatus(currentJob.printStatus);
+
+    if (statusPoll) clearInterval(statusPoll);
+    statusPoll = setInterval(async () => {
+      try {
+        const res = await fetch(`${API}/api/jobs/${currentJob._id}`);
+        const data = await res.json();
+        if (res.ok) {
+          currentJob = data;
+          renderStatus(data.printStatus);
+          if (data.printStatus === 'completed' || data.printStatus === 'failed') {
+            clearInterval(statusPoll);
+          }
+        }
+      } catch (e) { /* ignore transient errors, keep polling */ }
+    }, 4000);
+  }
+
+  function renderStatus(status) {
+    const pill = $('statusPill');
+    const text = $('statusText');
+    const helper = $('statusHelper');
+    pill.classList.remove('ok', 'wait');
+
+    const map = {
+      awaiting_payment: ['Waiting for payment confirmation', 'wait', 'Submit your UTR to move this job into the print queue.'],
+      queued: ['Queued for printing', 'wait', 'Your payment is confirmed. The shop will print it shortly.'],
+      printing: ['Printing now', 'wait', 'Almost done — stay nearby to collect it.'],
+      completed: ['Printed — ready for pickup', 'ok', 'Show your token at the counter to collect your prints.'],
+      failed: ['Something went wrong', '', 'Please show your token at the counter — the shop will help sort it out.'],
+    };
+    const [label, cls, help] = map[status] || map.awaiting_payment;
+    text.textContent = label;
+    if (cls) pill.classList.add(cls);
+    helper.textContent = help;
+  }
+
+  $('newOrderBtn').addEventListener('click', () => window.location.reload());
+
+  loadSettings();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Counter — Owner Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Archivo:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #ECE7D8;
+    --paper-card: #F8F5EC;
+    --ink: #17223B;
+    --ink-soft: #4B5468;
+    --stamp: #A6291B;
+    --ok: #2F6846;
+    --ok-bg: #E4EEE7;
+    --warn: #8A6416;
+    --warn-bg: #F3EAD6;
+    --rule: #C9C2AC;
+    --shadow: rgba(23,34,59,0.12);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink); font-family: 'Archivo', sans-serif; }
+  body { min-height: 100vh; padding: 20px 16px 60px; }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  header.top {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+  }
+  header.top .eyebrow { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--stamp); }
+  header.top h1 { font-size: 26px; font-weight: 800; margin: 2px 0 0; letter-spacing: -0.01em; }
+  .key-status { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--ink-soft); }
+  .key-status button { font: inherit; background: none; border: none; color: var(--stamp); cursor: pointer; text-decoration: underline; padding: 0; margin-left: 6px; }
+
+  /* Stat cards laid out like ticket stubs */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat {
+    background: var(--paper-card);
+    border-radius: 4px;
+    padding: 16px 16px 14px;
+    box-shadow: 0 10px 26px -16px var(--shadow), 0 1.5px 0 var(--rule);
+    position: relative;
+    border-left: 4px solid var(--stamp);
+  }
+  .stat .label { font-size: 12px; color: var(--ink-soft); font-weight: 600; }
+  .stat .value { font-family: 'Space Mono', monospace; font-size: 26px; font-weight: 700; margin-top: 6px; }
+  .stat .value.amt::before { content: "₹"; }
+  .stat.alt { border-left-color: var(--ok); }
+
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  @media (min-width: 860px) {
+    .grid2 { grid-template-columns: 320px 1fr; align-items: start; }
+  }
+
+  .panel {
+    background: var(--paper-card);
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 10px 26px -16px var(--shadow), 0 1.5px 0 var(--rule);
+  }
+  .panel h2 { font-size: 15px; margin: 0 0 16px; font-weight: 700; }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px; }
+  input[type="number"], input[type="text"] {
+    width: 100%; padding: 10px 11px; border: 1.5px solid var(--rule); border-radius: 4px;
+    font-family: 'Space Mono', monospace; font-size: 14px; background: #fff; color: var(--ink);
+  }
+  input:focus { outline: 2px solid var(--stamp); outline-offset: 1px; border-color: var(--stamp); }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .toggle-row label { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); margin: 0; }
+  .switch { position: relative; width: 42px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; inset: 0; background: var(--rule); border-radius: 20px; cursor: pointer; transition: 0.15s; }
+  .slider::before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: 0.15s; }
+  .switch input:checked + .slider { background: var(--ok); }
+  .switch input:checked + .slider::before { transform: translateX(18px); }
+
+  .btn {
+    display: block; width: 100%; text-align: center; padding: 12px 14px; border-radius: 4px; border: none;
+    font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 14.5px; cursor: pointer;
+  }
+  .btn-primary { background: var(--stamp); color: #fff; }
+  .btn-primary:disabled { background: #C7BFAE; color: #8a8375; cursor: not-allowed; }
+  .save-msg { font-size: 12px; color: var(--ok); margin-top: 8px; height: 14px; }
+
+  /* Jobs table */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 720px; }
+  thead th {
+    text-align: left; font-family: 'Space Mono', monospace; font-weight: 400; font-size: 11.5px;
+    color: var(--ink-soft); padding: 0 10px 8px; border-bottom: 1.5px solid var(--ink);
+  }
+  tbody td { padding: 11px 10px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.token { font-family: 'Space Mono', monospace; font-weight: 700; }
+  td.file { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  td.amt { font-family: 'Space Mono', monospace; }
+  td.amt::before { content: "₹"; color: var(--ink-soft); }
+
+  .badge {
+    display: inline-block; font-family: 'Space Mono', monospace; font-size: 11px; padding: 3px 8px;
+    border-radius: 20px; font-weight: 700; white-space: nowrap;
+  }
+  .badge.paid, .badge.completed { background: var(--ok-bg); color: var(--ok); }
+  .badge.pending, .badge.queued, .badge.printing { background: var(--warn-bg); color: var(--warn); }
+  .badge.failed, .badge.awaiting_payment { background: #F6E4E1; color: var(--stamp); }
+
+  .row-actions { display: flex; gap: 6px; }
+  .icon-btn {
+    font-family: 'Space Mono', monospace; font-size: 11px; padding: 5px 9px; border-radius: 4px;
+    border: 1.5px solid var(--ink); background: transparent; cursor: pointer; color: var(--ink);
+  }
+  .icon-btn:hover { background: var(--ink); color: var(--paper-card); }
+
+  .empty-state { text-align: center; color: var(--ink-soft); padding: 40px 10px; font-size: 13.5px; }
+
+  .gate {
+    max-width: 360px; margin: 80px auto; background: var(--paper-card); padding: 24px; border-radius: 4px;
+    box-shadow: 0 18px 40px -18px var(--shadow);
+  }
+  .gate h2 { margin-top: 0; font-size: 18px; }
+  .gate p { color: var(--ink-soft); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- Owner key gate -->
+<div class="gate" id="gate">
+  <h2>Owner sign-in</h2>
+  <p>Enter the owner key configured on your server (OWNER_KEY environment variable) to open the dashboard.</p>
+  <div class="field">
+    <label for="gateKey">Owner key</label>
+    <input type="text" id="gateKey" placeholder="••••••••••" />
+  </div>
+  <button class="btn btn-primary" id="gateBtn">Unlock dashboard</button>
+  <div class="save-msg" id="gateMsg"></div>
+</div>
+
+<div class="wrap" id="dashboard" style="display:none;">
+  <header class="top">
+    <div>
+      <div class="eyebrow">OWNER DASHBOARD</div>
+      <h1>Today at the counter</h1>
+    </div>
+    <div class="key-status">Signed in with owner key<button id="signOutBtn">sign out</button></div>
+  </header>
+
+  <section class="stats">
+    <div class="stat">
+      <div class="label">Today's revenue</div>
+      <div class="value amt" id="statToday">0.00</div>
+    </div>
+    <div class="stat">
+      <div class="label">This month's revenue</div>
+      <div class="value amt" id="statMonth">0.00</div>
+    </div>
+    <div class="stat alt">
+      <div class="label">Jobs completed today</div>
+      <div class="value" id="statCompleted">0</div>
+    </div>
+    <div class="stat">
+      <div class="label">Waiting in queue</div>
+      <div class="value" id="statQueue">0</div>
+    </div>
+  </section>
+
+  <div class="grid2">
+    <div class="panel">
+      <h2>Pricing &amp; UPI settings</h2>
+      <div class="field">
+        <label for="shopNameInput">Shop name</label>
+        <input type="text" id="shopNameInput" />
+      </div>
+      <div class="field">
+        <label for="bwPriceInput">B&amp;W price / page (₹)</label>
+        <input type="number" id="bwPriceInput" min="0" step="0.5" />
+      </div>
+      <div class="field">
+        <label for="colorPriceInput">Color price / page (₹)</label>
+        <input type="number" id="colorPriceInput" min="0" step="0.5" />
+      </div>
+      <div class="field">
+        <label for="upiIdInput">UPI ID</label>
+        <input type="text" id="upiIdInput" placeholder="yourshop@upi" />
+      </div>
+      <div class="field">
+        <label for="upiNameInput">UPI payee display name</label>
+        <input type="text" id="upiNameInput" />
+      </div>
+      <div class="toggle-row">
+        <label for="acceptingToggle">Accepting new orders</label>
+        <div class="switch">
+          <input type="checkbox" id="acceptingToggle" />
+          <span class="slider"></span>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="saveSettingsBtn">Save settings</button>
+      <div class="save-msg" id="settingsMsg"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Recent jobs</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>File</th>
+              <th>Type</th>
+              <th>Pages</th>
+              <th>Amount</th>
+              <th>Payment</th>
+              <th>Print status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="jobsBody">
+            <tr><td colspan="8" class="empty-state">Loading jobs…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const API = '';
+  const $ = (id) => document.getElementById(id);
+  let ownerKey = localStorage.getItem('ownerKey') || '';
+  let pollTimer = null;
+
+  function authHeaders() {
+    return { 'x-owner-key': ownerKey, 'Content-Type': 'application/json' };
+  }
+
+  async function apiGet(path) {
+    const res = await fetch(`${API}${path}`, { headers: authHeaders() });
+    if (res.status === 401) throw new Error('UNAUTHORIZED');
+    if (!res.ok) throw new Error((await res.json()).error || 'Request failed');
+    return res.json();
+  }
+  async function apiPost(path, body) {
+    const res = await fetch(`${API}${path}`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+    if (res.status === 401) throw new Error('UNAUTHORIZED');
+    if (!res.ok) throw new Error((await res.json()).error || 'Request failed');
+    return res.json();
+  }
+
+  // ---- Gate ----
+  $('gateBtn').addEventListener('click', async () => {
+    ownerKey = $('gateKey').value.trim();
+    if (!ownerKey) return;
+    $('gateMsg').style.color = 'var(--ink-soft)';
+    $('gateMsg').textContent = 'Checking…';
+    try {
+      await apiGet('/api/jobs/stats'); // will throw if key is wrong
+      localStorage.setItem('ownerKey', ownerKey);
+      showDashboard();
+    } catch (e) {
+      $('gateMsg').style.color = 'var(--stamp)';
+      $('gateMsg').textContent = 'Incorrect owner key. Check your server\'s OWNER_KEY setting.';
+    }
+  });
+
+  $('signOutBtn').addEventListener('click', () => {
+    localStorage.removeItem('ownerKey');
+    ownerKey = '';
+    clearInterval(pollTimer);
+    $('dashboard').style.display = 'none';
+    $('gate').style.display = 'block';
+  });
+
+  function showDashboard() {
+    $('gate').style.display = 'none';
+    $('dashboard').style.display = 'block';
+    loadSettingsIntoForm();
+    refreshAll();
+    pollTimer = setInterval(refreshAll, 6000);
+  }
+
+  // ---- Settings ----
+  async function loadSettingsIntoForm() {
+    try {
+      const s = await (await fetch(`${API}/api/settings`)).json();
+      $('shopNameInput').value = s.shopName || '';
+      $('bwPriceInput').value = s.bw_price_per_page;
+      $('colorPriceInput').value = s.color_price_per_page;
+      $('upiIdInput').value = s.owner_upi_id || '';
+      $('upiNameInput').value = s.owner_display_name || '';
+      $('acceptingToggle').checked = !!s.acceptingOrders;
+    } catch (e) { /* ignore */ }
+  }
+
+  $('saveSettingsBtn').addEventListener('click', async () => {
+    $('saveSettingsBtn').disabled = true;
+    $('settingsMsg').textContent = '';
+    try {
+      await apiPost('/api/settings', {
+        shopName: $('shopNameInput').value,
+        bw_price_per_page: parseFloat($('bwPriceInput').value) || 0,
+        color_price_per_page: parseFloat($('colorPriceInput').value) || 0,
+        owner_upi_id: $('upiIdInput').value,
+        owner_display_name: $('upiNameInput').value,
+        acceptingOrders: $('acceptingToggle').checked,
+      });
+      $('settingsMsg').textContent = 'Saved ✓';
+      setTimeout(() => ($('settingsMsg').textContent = ''), 2500);
+    } catch (e) {
+      $('settingsMsg').style.color = 'var(--stamp)';
+      $('settingsMsg').textContent = e.message === 'UNAUTHORIZED' ? 'Owner key rejected — sign in again.' : e.message;
+    } finally {
+      $('saveSettingsBtn').disabled = false;
+    }
+  });
+
+  // ---- Stats + jobs table ----
+  async function refreshAll() {
+    try {
+      const [stats, jobs] = await Promise.all([
+        apiGet('/api/jobs/stats'),
+        apiGet('/api/jobs/history?limit=60'),
+      ]);
+      renderStats(stats);
+      renderJobs(jobs);
+    } catch (e) {
+      if (e.message === 'UNAUTHORIZED') {
+        clearInterval(pollTimer);
+        $('signOutBtn').click();
+      }
+    }
+  }
+
+  function renderStats(s) {
+    $('statToday').textContent = s.todayRevenue.toFixed(2);
+    $('statMonth').textContent = s.monthRevenue.toFixed(2);
+    $('statCompleted').textContent = s.completedTodayCount;
+    $('statQueue').textContent = s.pendingQueueCount;
+  }
+
+  function renderJobs(jobs) {
+    const body = $('jobsBody');
+    if (!jobs.length) {
+      body.innerHTML = '<tr><td colspan="8" class="empty-state">No jobs yet. New orders will show up here automatically.</td></tr>';
+      return;
+    }
+    body.innerHTML = jobs.map((j) => `
+      <tr data-id="${j._id}">
+        <td class="token">${j.tokenId}</td>
+        <td class="file" title="${escapeHtml(j.fileName)}">${escapeHtml(j.fileName)}</td>
+        <td>${j.printType === 'color' ? 'Color' : 'B&amp;W'}</td>
+        <td>${j.totalPages} × ${j.copies}</td>
+        <td class="amt">${j.totalAmount.toFixed(2)}</td>
+        <td><span class="badge ${j.paymentStatus}">${j.paymentStatus}</span></td>
+        <td><span class="badge ${j.printStatus}">${j.printStatus.replace('_', ' ')}</span></td>
+        <td>
+          <div class="row-actions">
+            <a class="icon-btn" href="${j.fileUrl}" target="_blank" rel="noopener">open</a>
+            ${j.printStatus === 'failed' ? `<button class="icon-btn requeue-btn">retry</button>` : ''}
+            ${j.paymentStatus === 'pending' ? `<button class="icon-btn verify-btn">mark paid</button>` : ''}
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    body.querySelectorAll('tr').forEach((row) => {
+      const id = row.dataset.id;
+      const requeueBtn = row.querySelector('.requeue-btn');
+      const verifyBtn = row.querySelector('.verify-btn');
+      if (requeueBtn) requeueBtn.addEventListener('click', () => updateJobStatus(id, { printStatus: 'queued' }));
+      if (verifyBtn) verifyBtn.addEventListener('click', () => updateJobStatus(id, { paymentStatus: 'paid', printStatus: 'queued' }));
+    });
+  }
+
+  async function updateJobStatus(id, body) {
+    try {
+      await apiPost(`/api/jobs/${id}/status`, body);
+      refreshAll();
+    } catch (e) { /* silently ignore, next poll will resync */ }
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+
+  // ---- Boot ----
+  if (ownerKey) {
+    apiGet('/api/jobs/stats').then(showDashboard).catch(() => { ownerKey = ''; });
+  }
+})();
+</script>
+</body>
+</html>
