@@ -1,26 +1,64 @@
 // models/Settings.js
-// Singleton document holding the shop's live pricing and UPI details.
-// There is only ever one Settings document; server.js upserts it.
+// Data access for the single "settings" row (owner pricing, UPI id, login
+// credentials). Plain functions over a MySQL table -- there's only ever one
+// row, keyed by settings_key = 'shop'.
 
-const mongoose = require('mongoose');
+const { pool } = require('../db');
 
-const settingsSchema = new mongoose.Schema(
-  {
-    // A fixed key lets us always find "the one" settings doc with findOne({ key: 'shop' })
-    key: { type: String, default: 'shop', unique: true },
+function normalize(row) {
+  if (!row) return null;
+  return {
+    key: row.settings_key,
+    shopName: row.shopName,
+    bw_price_per_page: Number(row.bw_price_per_page),
+    color_price_per_page: Number(row.color_price_per_page),
+    owner_upi_id: row.owner_upi_id,
+    owner_display_name: row.owner_display_name,
+    acceptingOrders: !!row.acceptingOrders,
+    ownerUsername: row.ownerUsername || 'owner',
+    ownerPassword: row.ownerPassword,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
 
-    shopName: { type: String, default: 'Quick Print Xerox' },
+// Ensures a settings row always exists, and returns it.
+async function getOrCreate() {
+  const [rows] = await pool.query('SELECT * FROM settings WHERE settings_key = ? LIMIT 1', ['shop']);
+  if (rows.length) return normalize(rows[0]);
 
-    bw_price_per_page: { type: Number, default: 2 }, // ₹ per page, black & white
-    color_price_per_page: { type: Number, default: 10 }, // ₹ per page, color
+  await pool.query('INSERT INTO settings (settings_key) VALUES (?)', ['shop']);
+  const [created] = await pool.query('SELECT * FROM settings WHERE settings_key = ? LIMIT 1', ['shop']);
+  return normalize(created[0]);
+}
 
-    owner_upi_id: { type: String, default: 'shopowner@upi' },
-    owner_display_name: { type: String, default: 'Quick Print Xerox' },
+// Partial update -- only fields present in `fields` are changed.
+async function update(fields) {
+  await getOrCreate(); // make sure the row exists first
 
-    // Simple on/off switch so the owner can pause new orders (e.g. shop closed)
-    acceptingOrders: { type: Boolean, default: true },
-  },
-  { timestamps: true }
-);
+  const allowed = [
+    'shopName',
+    'bw_price_per_page',
+    'color_price_per_page',
+    'owner_upi_id',
+    'owner_display_name',
+    'acceptingOrders',
+    'ownerUsername',
+    'ownerPassword',
+  ];
+  const sets = [];
+  const values = [];
+  for (const field of allowed) {
+    if (fields[field] !== undefined) {
+      sets.push(`${field} = ?`);
+      values.push(field === 'acceptingOrders' ? (fields[field] ? 1 : 0) : fields[field]);
+    }
+  }
+  if (sets.length === 0) return getOrCreate();
 
-module.exports = mongoose.model('Settings', settingsSchema);
+  values.push('shop');
+  await pool.query(`UPDATE settings SET ${sets.join(', ')} WHERE settings_key = ?`, values);
+  return getOrCreate();
+}
+
+module.exports = { getOrCreate, update };

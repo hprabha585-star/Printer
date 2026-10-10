@@ -22,130 +22,111 @@
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink); font-family: 'Archivo', sans-serif; }
-  body { min-height: 100vh; padding: 20px 16px 60px; }
+  body { min-height: 100vh; padding: 18px 14px 60px; }
   .wrap { max-width: 1080px; margin: 0 auto; }
 
-  header.top {
-    display: flex; justify-content: space-between; align-items: flex-end;
-    margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
-  }
+  header.top { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
   header.top .eyebrow { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--stamp); }
-  header.top h1 { font-size: 26px; font-weight: 800; margin: 2px 0 0; letter-spacing: -0.01em; }
+  header.top h1 { font-size: 24px; font-weight: 800; margin: 2px 0 0; letter-spacing: -0.01em; }
   .key-status { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--ink-soft); }
   .key-status button { font: inherit; background: none; border: none; color: var(--stamp); cursor: pointer; text-decoration: underline; padding: 0; margin-left: 6px; }
 
-  /* Stat cards laid out like ticket stubs */
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-  .stat {
-    background: var(--paper-card);
-    border-radius: 4px;
-    padding: 16px 16px 14px;
-    box-shadow: 0 10px 26px -16px var(--shadow), 0 1.5px 0 var(--rule);
-    position: relative;
-    border-left: 4px solid var(--stamp);
-  }
-  .stat .label { font-size: 12px; color: var(--ink-soft); font-weight: 600; }
-  .stat .value { font-family: 'Space Mono', monospace; font-size: 26px; font-weight: 700; margin-top: 6px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .stat { background: var(--paper-card); border-radius: 4px; padding: 14px 14px 12px; box-shadow: 0 10px 26px -16px var(--shadow), 0 1.5px 0 var(--rule); border-left: 4px solid var(--stamp); }
+  .stat .label { font-size: 11.5px; color: var(--ink-soft); font-weight: 600; }
+  .stat .value { font-family: 'Space Mono', monospace; font-size: 23px; font-weight: 700; margin-top: 5px; }
   .stat .value.amt::before { content: "₹"; }
+  .stat .sub { font-family: 'Space Mono', monospace; font-size: 10.5px; color: var(--ink-soft); margin-top: 4px; }
   .stat.alt { border-left-color: var(--ok); }
+  .stat.warn { border-left-color: var(--warn); }
 
-  .grid2 {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  @media (min-width: 860px) {
-    .grid2 { grid-template-columns: 320px 1fr; align-items: start; }
-  }
+  .grid2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 900px) { .grid2 { grid-template-columns: 300px 1fr; align-items: start; } }
 
-  .panel {
-    background: var(--paper-card);
-    border-radius: 4px;
-    padding: 20px;
-    box-shadow: 0 10px 26px -16px var(--shadow), 0 1.5px 0 var(--rule);
-  }
-  .panel h2 { font-size: 15px; margin: 0 0 16px; font-weight: 700; }
+  .panel { background: var(--paper-card); border-radius: 4px; padding: 18px; box-shadow: 0 10px 26px -16px var(--shadow), 0 1.5px 0 var(--rule); margin-bottom: 16px; }
+  .panel h2 { font-size: 14.5px; margin: 0 0 14px; font-weight: 700; }
 
-  .field { margin-bottom: 14px; }
-  .field label { display: block; font-size: 12px; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px; }
-  input[type="number"], input[type="text"] {
+  .field { margin-bottom: 13px; }
+  .field label { display: block; font-size: 11.5px; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px; }
+  input[type="number"], input[type="text"], input[type="password"] {
     width: 100%; padding: 10px 11px; border: 1.5px solid var(--rule); border-radius: 4px;
-    font-family: 'Space Mono', monospace; font-size: 14px; background: #fff; color: var(--ink);
+    font-family: 'Space Mono', monospace; font-size: 13.5px; background: #fff; color: var(--ink);
   }
   input:focus { outline: 2px solid var(--stamp); outline-offset: 1px; border-color: var(--stamp); }
 
-  .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .toggle-row label { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); margin: 0; }
-  .switch { position: relative; width: 42px; height: 24px; }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+  .toggle-row label { font-size: 12px; font-weight: 700; color: var(--ink-soft); margin: 0; }
+  .switch { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
   .switch input { opacity: 0; width: 0; height: 0; }
   .slider { position: absolute; inset: 0; background: var(--rule); border-radius: 20px; cursor: pointer; transition: 0.15s; }
   .slider::before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: 0.15s; }
   .switch input:checked + .slider { background: var(--ok); }
   .switch input:checked + .slider::before { transform: translateX(18px); }
 
-  .btn {
-    display: block; width: 100%; text-align: center; padding: 12px 14px; border-radius: 4px; border: none;
-    font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 14.5px; cursor: pointer;
-  }
+  .btn { display: block; width: 100%; text-align: center; padding: 11px 14px; border-radius: 4px; border: none; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 13.5px; cursor: pointer; }
   .btn-primary { background: var(--stamp); color: #fff; }
   .btn-primary:disabled { background: #C7BFAE; color: #8a8375; cursor: not-allowed; }
-  .save-msg { font-size: 12px; color: var(--ok); margin-top: 8px; height: 14px; }
+  .btn-ok { background: var(--ok); color: #fff; }
+  .btn-sm { padding: 6px 10px; font-size: 11px; width: auto; display: inline-block; }
+  .save-msg { font-size: 12px; color: var(--ok); margin-top: 8px; min-height: 14px; }
 
-  /* Jobs table */
+  .qr-card { text-align: center; }
+  .qr-card img { width: 170px; height: 170px; border: 1.5px solid var(--rule); border-radius: 6px; background: #fff; padding: 8px; }
+  .qr-card .qr-url { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--ink-soft); margin-top: 10px; word-break: break-all; }
+  .qr-card .qr-hint { font-size: 12px; color: var(--ink-soft); margin-top: 8px; }
+
   .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 720px; }
-  thead th {
-    text-align: left; font-family: 'Space Mono', monospace; font-weight: 400; font-size: 11.5px;
-    color: var(--ink-soft); padding: 0 10px 8px; border-bottom: 1.5px solid var(--ink);
-  }
-  tbody td { padding: 11px 10px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 760px; }
+  thead th { text-align: left; font-family: 'Space Mono', monospace; font-weight: 400; font-size: 11px; color: var(--ink-soft); padding: 0 9px 8px; border-bottom: 1.5px solid var(--ink); }
+  tbody td { padding: 10px 9px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
   tbody tr:last-child td { border-bottom: none; }
   td.token { font-family: 'Space Mono', monospace; font-weight: 700; }
-  td.file { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  td.file { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   td.amt { font-family: 'Space Mono', monospace; }
   td.amt::before { content: "₹"; color: var(--ink-soft); }
 
-  .badge {
-    display: inline-block; font-family: 'Space Mono', monospace; font-size: 11px; padding: 3px 8px;
-    border-radius: 20px; font-weight: 700; white-space: nowrap;
-  }
+  .badge { display: inline-block; font-family: 'Space Mono', monospace; font-size: 10.5px; padding: 3px 7px; border-radius: 20px; font-weight: 700; white-space: nowrap; }
   .badge.paid, .badge.completed { background: var(--ok-bg); color: var(--ok); }
   .badge.pending, .badge.queued, .badge.printing { background: var(--warn-bg); color: var(--warn); }
   .badge.failed, .badge.awaiting_payment { background: #F6E4E1; color: var(--stamp); }
+  .badge.method-cash { background: #EDE6D6; color: #7A5A1E; }
+  .badge.method-upi { background: #DCE6F0; color: #1E4A7A; }
 
-  .row-actions { display: flex; gap: 6px; }
-  .icon-btn {
-    font-family: 'Space Mono', monospace; font-size: 11px; padding: 5px 9px; border-radius: 4px;
-    border: 1.5px solid var(--ink); background: transparent; cursor: pointer; color: var(--ink);
-  }
+  .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .icon-btn { font-family: 'Space Mono', monospace; font-size: 10.5px; padding: 5px 8px; border-radius: 4px; border: 1.5px solid var(--ink); background: transparent; cursor: pointer; color: var(--ink); text-decoration: none; }
   .icon-btn:hover { background: var(--ink); color: var(--paper-card); }
+  .icon-btn.confirm { border-color: var(--ok); color: var(--ok); }
+  .icon-btn.confirm:hover { background: var(--ok); color: #fff; }
 
-  .empty-state { text-align: center; color: var(--ink-soft); padding: 40px 10px; font-size: 13.5px; }
+  .empty-state { text-align: center; color: var(--ink-soft); padding: 36px 10px; font-size: 13px; }
 
-  .gate {
-    max-width: 360px; margin: 80px auto; background: var(--paper-card); padding: 24px; border-radius: 4px;
-    box-shadow: 0 18px 40px -18px var(--shadow);
-  }
+  .gate { max-width: 360px; margin: 70px auto; background: var(--paper-card); padding: 24px; border-radius: 4px; box-shadow: 0 18px 40px -18px var(--shadow); }
   .gate h2 { margin-top: 0; font-size: 18px; }
   .gate p { color: var(--ink-soft); font-size: 13px; }
+  .show-toggle { position: absolute; right: 6px; top: 6px; bottom: 6px; padding: 0 10px; border: none; background: transparent; color: var(--ink-soft); font-family: 'Space Mono', monospace; font-size: 11px; cursor: pointer; }
 </style>
 </head>
 <body>
 
-<!-- Owner key gate -->
+<!-- Login gate -->
 <div class="gate" id="gate">
-  <h2>Owner sign-in</h2>
-  <p>Enter the owner key configured on your server (OWNER_KEY environment variable) to open the dashboard.</p>
+  <h2>Shop owner sign-in</h2>
+  <p>
+    The first time, sign in with username <b>owner</b> and the master key your developer set up
+    during hosting. Afterwards, set your own username and password from Settings → "Change login details".
+  </p>
   <div class="field">
-    <label for="gateKey">Owner key</label>
-    <input type="text" id="gateKey" placeholder="••••••••••" />
+    <label for="gateUsername">Username</label>
+    <input type="text" id="gateUsername" placeholder="owner" autocomplete="username" />
   </div>
-  <button class="btn btn-primary" id="gateBtn">Unlock dashboard</button>
+  <div class="field">
+    <label for="gatePassword">Password</label>
+    <div style="position:relative;">
+      <input type="password" id="gatePassword" placeholder="Type it here" style="padding-right:70px;" autocomplete="current-password" />
+      <button type="button" id="gateShowBtn" class="show-toggle">SHOW</button>
+    </div>
+  </div>
+  <button class="btn btn-primary" id="gateBtn">Sign in</button>
   <div class="save-msg" id="gateMsg"></div>
 </div>
 
@@ -155,81 +136,99 @@
       <div class="eyebrow">OWNER DASHBOARD</div>
       <h1>Today at the counter</h1>
     </div>
-    <div class="key-status">Signed in with owner key<button id="signOutBtn">sign out</button></div>
+    <div class="key-status">Signed in<button id="signOutBtn">sign out</button></div>
   </header>
 
   <section class="stats">
     <div class="stat">
       <div class="label">Today's revenue</div>
       <div class="value amt" id="statToday">0.00</div>
+      <div class="sub" id="statTodaySplit">UPI 0.00 · Cash 0.00</div>
     </div>
     <div class="stat">
       <div class="label">This month's revenue</div>
       <div class="value amt" id="statMonth">0.00</div>
+      <div class="sub" id="statMonthSplit">UPI 0.00 · Cash 0.00</div>
     </div>
     <div class="stat alt">
-      <div class="label">Jobs completed today</div>
+      <div class="label">Completed today</div>
       <div class="value" id="statCompleted">0</div>
     </div>
     <div class="stat">
-      <div class="label">Waiting in queue</div>
+      <div class="label">In print queue</div>
       <div class="value" id="statQueue">0</div>
+    </div>
+    <div class="stat warn">
+      <div class="label">Awaiting cash payment</div>
+      <div class="value" id="statCashPending">0</div>
     </div>
   </section>
 
   <div class="grid2">
-    <div class="panel">
-      <h2>Pricing &amp; UPI settings</h2>
-      <div class="field">
-        <label for="shopNameInput">Shop name</label>
-        <input type="text" id="shopNameInput" />
+    <div>
+      <div class="panel qr-card">
+        <h2 style="text-align:left;">Your shop QR code</h2>
+        <img id="shopQrImg" src="" alt="QR code linking to this shop's order page" />
+        <div class="qr-url" id="shopUrlText"></div>
+        <div class="qr-hint">Print this and place it at the counter. Customers scan it to start an order — no app or login needed.</div>
       </div>
-      <div class="field">
-        <label for="bwPriceInput">B&amp;W price / page (₹)</label>
-        <input type="number" id="bwPriceInput" min="0" step="0.5" />
-      </div>
-      <div class="field">
-        <label for="colorPriceInput">Color price / page (₹)</label>
-        <input type="number" id="colorPriceInput" min="0" step="0.5" />
-      </div>
-      <div class="field">
-        <label for="upiIdInput">UPI ID</label>
-        <input type="text" id="upiIdInput" placeholder="yourshop@upi" />
-      </div>
-      <div class="field">
-        <label for="upiNameInput">UPI payee display name</label>
-        <input type="text" id="upiNameInput" />
-      </div>
-      <div class="toggle-row">
-        <label for="acceptingToggle">Accepting new orders</label>
-        <div class="switch">
-          <input type="checkbox" id="acceptingToggle" />
-          <span class="slider"></span>
+
+      <div class="panel">
+        <h2>Pricing &amp; UPI settings</h2>
+        <div class="field">
+          <label for="shopNameInput">Shop name</label>
+          <input type="text" id="shopNameInput" />
         </div>
+        <div class="field">
+          <label for="bwPriceInput">B&amp;W price / page (₹)</label>
+          <input type="number" id="bwPriceInput" min="0" step="0.5" />
+        </div>
+        <div class="field">
+          <label for="colorPriceInput">Color price / page (₹)</label>
+          <input type="number" id="colorPriceInput" min="0" step="0.5" />
+        </div>
+        <div class="field">
+          <label for="upiIdInput">UPI ID</label>
+          <input type="text" id="upiIdInput" placeholder="yourshop@upi" />
+        </div>
+        <div class="field">
+          <label for="upiNameInput">UPI payee display name</label>
+          <input type="text" id="upiNameInput" />
+        </div>
+        <div class="toggle-row">
+          <label for="acceptingToggle">Accepting new orders</label>
+          <div class="switch"><input type="checkbox" id="acceptingToggle" /><span class="slider"></span></div>
+        </div>
+        <button class="btn btn-primary" id="saveSettingsBtn">Save settings</button>
+        <div class="save-msg" id="settingsMsg"></div>
       </div>
-      <button class="btn btn-primary" id="saveSettingsBtn">Save settings</button>
-      <div class="save-msg" id="settingsMsg"></div>
+
+      <div class="panel">
+        <h2>Change login details</h2>
+        <div class="field">
+          <label for="newUsernameInput">Username</label>
+          <input type="text" id="newUsernameInput" placeholder="owner" />
+        </div>
+        <div class="field">
+          <label for="newPasswordInput">New password (leave blank to keep current)</label>
+          <input type="text" id="newPasswordInput" placeholder="At least 4 characters" />
+        </div>
+        <button class="btn btn-primary" id="changeCredsBtn">Update login details</button>
+        <div class="save-msg" id="credsMsg"></div>
+      </div>
     </div>
 
     <div class="panel">
-      <h2>Recent jobs</h2>
+      <h2>Recent orders</h2>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Token</th>
-              <th>File</th>
-              <th>Type</th>
-              <th>Pages</th>
-              <th>Amount</th>
-              <th>Payment</th>
-              <th>Print status</th>
-              <th>Actions</th>
+              <th>Order</th><th>File</th><th>Type</th><th>Pages</th><th>Amount</th>
+              <th>Payment</th><th>Method</th><th>Print status</th><th>Actions</th>
             </tr>
           </thead>
-          <tbody id="jobsBody">
-            <tr><td colspan="8" class="empty-state">Loading jobs…</td></tr>
-          </tbody>
+          <tbody id="jobsBody"><tr><td colspan="9" class="empty-state">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -243,9 +242,7 @@
   let ownerKey = localStorage.getItem('ownerKey') || '';
   let pollTimer = null;
 
-  function authHeaders() {
-    return { 'x-owner-key': ownerKey, 'Content-Type': 'application/json' };
-  }
+  function authHeaders() { return { 'x-owner-key': ownerKey, 'Content-Type': 'application/json' }; }
 
   async function apiGet(path) {
     const res = await fetch(`${API}${path}`, { headers: authHeaders() });
@@ -254,25 +251,40 @@
     return res.json();
   }
   async function apiPost(path, body) {
-    const res = await fetch(`${API}${path}`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+    const res = await fetch(`${API}${path}`, { method: 'POST', headers: authHeaders(), body: body ? JSON.stringify(body) : undefined });
     if (res.status === 401) throw new Error('UNAUTHORIZED');
     if (!res.ok) throw new Error((await res.json()).error || 'Request failed');
     return res.json();
   }
 
   // ---- Gate ----
+  $('gateShowBtn').addEventListener('click', () => {
+    const field = $('gatePassword');
+    const showing = field.type === 'text';
+    field.type = showing ? 'password' : 'text';
+    $('gateShowBtn').textContent = showing ? 'SHOW' : 'HIDE';
+  });
+  $('gatePassword').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('gateBtn').click(); });
+
   $('gateBtn').addEventListener('click', async () => {
-    ownerKey = $('gateKey').value.trim();
-    if (!ownerKey) return;
+    const username = $('gateUsername').value.trim() || 'owner';
+    const password = $('gatePassword').value;
+    if (!password) return;
     $('gateMsg').style.color = 'var(--ink-soft)';
     $('gateMsg').textContent = 'Checking…';
     try {
-      await apiGet('/api/jobs/stats'); // will throw if key is wrong
+      const res = await fetch(`${API}/api/owner/login`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Login failed');
+      ownerKey = password;
       localStorage.setItem('ownerKey', ownerKey);
       showDashboard();
     } catch (e) {
       $('gateMsg').style.color = 'var(--stamp)';
-      $('gateMsg').textContent = 'Incorrect owner key. Check your server\'s OWNER_KEY setting.';
+      $('gateMsg').textContent = e.message;
     }
   });
 
@@ -287,6 +299,8 @@
   function showDashboard() {
     $('gate').style.display = 'none';
     $('dashboard').style.display = 'block';
+    $('shopUrlText').textContent = window.location.origin;
+    $('shopQrImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(window.location.origin)}`;
     loadSettingsIntoForm();
     refreshAll();
     pollTimer = setInterval(refreshAll, 6000);
@@ -302,6 +316,7 @@
       $('upiIdInput').value = s.owner_upi_id || '';
       $('upiNameInput').value = s.owner_display_name || '';
       $('acceptingToggle').checked = !!s.acceptingOrders;
+      $('newUsernameInput').value = s.ownerUsername || 'owner';
     } catch (e) { /* ignore */ }
   }
 
@@ -317,13 +332,45 @@
         owner_display_name: $('upiNameInput').value,
         acceptingOrders: $('acceptingToggle').checked,
       });
+      $('settingsMsg').style.color = 'var(--ok)';
       $('settingsMsg').textContent = 'Saved ✓';
       setTimeout(() => ($('settingsMsg').textContent = ''), 2500);
     } catch (e) {
       $('settingsMsg').style.color = 'var(--stamp)';
-      $('settingsMsg').textContent = e.message === 'UNAUTHORIZED' ? 'Owner key rejected — sign in again.' : e.message;
+      $('settingsMsg').textContent = e.message === 'UNAUTHORIZED' ? 'Session expired — sign in again.' : e.message;
     } finally {
       $('saveSettingsBtn').disabled = false;
+    }
+  });
+
+  // ---- Change login details ----
+  $('changeCredsBtn').addEventListener('click', async () => {
+    const newUsername = $('newUsernameInput').value.trim();
+    const newPassword = $('newPasswordInput').value.trim();
+    $('credsMsg').style.color = 'var(--stamp)';
+    if (newPassword && newPassword.length < 4) {
+      $('credsMsg').textContent = 'Password must be at least 4 characters.';
+      return;
+    }
+    $('changeCredsBtn').disabled = true;
+    try {
+      const body = {};
+      if (newUsername) body.newUsername = newUsername;
+      if (newPassword) body.newPassword = newPassword;
+      await apiPost('/api/owner/change-credentials', body);
+      if (newPassword) {
+        ownerKey = newPassword;
+        localStorage.setItem('ownerKey', ownerKey);
+      }
+      $('newPasswordInput').value = '';
+      $('credsMsg').style.color = 'var(--ok)';
+      $('credsMsg').textContent = 'Updated ✓ — use these next time you sign in.';
+      setTimeout(() => ($('credsMsg').textContent = ''), 4000);
+    } catch (e) {
+      $('credsMsg').style.color = 'var(--stamp)';
+      $('credsMsg').textContent = e.message === 'UNAUTHORIZED' ? 'Session expired — sign in again.' : e.message;
+    } finally {
+      $('changeCredsBtn').disabled = false;
     }
   });
 
@@ -332,45 +379,46 @@
     try {
       const [stats, jobs] = await Promise.all([
         apiGet('/api/jobs/stats'),
-        apiGet('/api/jobs/history?limit=60'),
+        apiGet('/api/jobs/history?limit=150'),
       ]);
       renderStats(stats);
       renderJobs(jobs);
     } catch (e) {
-      if (e.message === 'UNAUTHORIZED') {
-        clearInterval(pollTimer);
-        $('signOutBtn').click();
-      }
+      if (e.message === 'UNAUTHORIZED') { clearInterval(pollTimer); $('signOutBtn').click(); }
     }
   }
 
   function renderStats(s) {
     $('statToday').textContent = s.todayRevenue.toFixed(2);
+    $('statTodaySplit').textContent = `UPI ${s.todayRevenueUpi.toFixed(2)} · Cash ${s.todayRevenueCash.toFixed(2)}`;
     $('statMonth').textContent = s.monthRevenue.toFixed(2);
+    $('statMonthSplit').textContent = `UPI ${s.monthRevenueUpi.toFixed(2)} · Cash ${s.monthRevenueCash.toFixed(2)}`;
     $('statCompleted').textContent = s.completedTodayCount;
     $('statQueue').textContent = s.pendingQueueCount;
+    $('statCashPending').textContent = s.pendingCashOrderCount;
   }
 
   function renderJobs(jobs) {
     const body = $('jobsBody');
     if (!jobs.length) {
-      body.innerHTML = '<tr><td colspan="8" class="empty-state">No jobs yet. New orders will show up here automatically.</td></tr>';
+      body.innerHTML = '<tr><td colspan="9" class="empty-state">No orders yet. New orders will show up here automatically.</td></tr>';
       return;
     }
     body.innerHTML = jobs.map((j) => `
-      <tr data-id="${j._id}">
+      <tr data-id="${j._id}" data-order="${j.orderId}">
         <td class="token">${j.tokenId}</td>
         <td class="file" title="${escapeHtml(j.fileName)}">${escapeHtml(j.fileName)}</td>
         <td>${j.printType === 'color' ? 'Color' : 'B&amp;W'}</td>
-        <td>${j.totalPages} × ${j.copies}</td>
+        <td>${j.startPage}-${j.endPage} ×${j.copies}</td>
         <td class="amt">${j.totalAmount.toFixed(2)}</td>
         <td><span class="badge ${j.paymentStatus}">${j.paymentStatus}</span></td>
+        <td><span class="badge method-${j.paymentMethod}">${j.paymentMethod}</span></td>
         <td><span class="badge ${j.printStatus}">${j.printStatus.replace('_', ' ')}</span></td>
         <td>
           <div class="row-actions">
             <a class="icon-btn" href="${j.fileUrl}" target="_blank" rel="noopener">open</a>
             ${j.printStatus === 'failed' ? `<button class="icon-btn requeue-btn">retry</button>` : ''}
-            ${j.paymentStatus === 'pending' ? `<button class="icon-btn verify-btn">mark paid</button>` : ''}
+            ${j.paymentMethod === 'cash' && j.paymentStatus === 'pending' ? `<button class="icon-btn confirm cash-confirm-btn">confirm cash</button>` : ''}
           </div>
         </td>
       </tr>
@@ -378,18 +426,19 @@
 
     body.querySelectorAll('tr').forEach((row) => {
       const id = row.dataset.id;
+      const orderId = row.dataset.order;
       const requeueBtn = row.querySelector('.requeue-btn');
-      const verifyBtn = row.querySelector('.verify-btn');
-      if (requeueBtn) requeueBtn.addEventListener('click', () => updateJobStatus(id, { printStatus: 'queued' }));
-      if (verifyBtn) verifyBtn.addEventListener('click', () => updateJobStatus(id, { paymentStatus: 'paid', printStatus: 'queued' }));
+      const cashBtn = row.querySelector('.cash-confirm-btn');
+      if (requeueBtn) requeueBtn.addEventListener('click', () => retryJob(id));
+      if (cashBtn) cashBtn.addEventListener('click', () => confirmCash(orderId));
     });
   }
 
-  async function updateJobStatus(id, body) {
-    try {
-      await apiPost(`/api/jobs/${id}/status`, body);
-      refreshAll();
-    } catch (e) { /* silently ignore, next poll will resync */ }
+  async function retryJob(id) {
+    try { await apiPost(`/api/jobs/${id}/status`, { printStatus: 'queued' }); refreshAll(); } catch (e) {}
+  }
+  async function confirmCash(orderId) {
+    try { await apiPost(`/api/orders/${orderId}/confirm-cash`, {}); refreshAll(); } catch (e) {}
   }
 
   function escapeHtml(str) {

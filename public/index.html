@@ -15,252 +15,137 @@
     --stamp: #A6291B;
     --stamp-dark: #7E1E13;
     --ok: #2F6846;
+    --ok-bg: #E4EEE7;
+    --warn: #8A6416;
+    --warn-bg: #F3EAD6;
     --rule: #C9C2AC;
     --shadow: rgba(23,34,59,0.14);
   }
-
   * { box-sizing: border-box; }
-
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: 'Archivo', sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
-
+  html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink); font-family: 'Archivo', sans-serif; -webkit-font-smoothing: antialiased; }
   body {
-    background-image:
-      radial-gradient(circle at 1px 1px, rgba(23,34,59,0.06) 1px, transparent 0);
+    background-image: radial-gradient(circle at 1px 1px, rgba(23,34,59,0.06) 1px, transparent 0);
     background-size: 14px 14px;
     min-height: 100vh;
-    padding: 28px 16px 60px;
+    padding: 24px 14px 60px;
   }
-
   .wrap { max-width: 480px; margin: 0 auto; }
 
-  header.hero {
-    text-align: left;
-    margin-bottom: 22px;
-    padding: 0 4px;
-  }
-  header.hero .eyebrow {
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    color: var(--stamp);
-    letter-spacing: 0.02em;
-  }
-  header.hero h1 {
-    font-size: 30px;
-    font-weight: 800;
-    line-height: 1.05;
-    margin: 4px 0 6px;
-    letter-spacing: -0.01em;
-  }
-  header.hero p {
-    color: var(--ink-soft);
-    font-size: 14.5px;
-    margin: 0;
-    max-width: 34ch;
-  }
+  header.hero { text-align: left; margin-bottom: 18px; padding: 0 4px; }
+  header.hero .eyebrow { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--stamp); }
+  header.hero h1 { font-size: 27px; font-weight: 800; line-height: 1.08; margin: 4px 0 6px; letter-spacing: -0.01em; }
+  header.hero p { color: var(--ink-soft); font-size: 14px; margin: 0; max-width: 36ch; }
 
-  /* --- Receipt card --- */
-  .receipt {
+  .steps { display: flex; gap: 6px; margin-bottom: 16px; padding: 0 4px; }
+  .steps .step { flex: 1; height: 3px; border-radius: 3px; background: var(--rule); }
+  .steps .step.active { background: var(--stamp); }
+  .steps .step.done { background: var(--ok); }
+
+  .card {
     background: var(--paper-card);
-    border-radius: 3px;
-    box-shadow: 0 18px 40px -18px var(--shadow), 0 2px 0 var(--rule);
-    position: relative;
-    padding: 26px 22px 22px;
+    border-radius: 4px;
+    box-shadow: 0 14px 34px -18px var(--shadow), 0 1.5px 0 var(--rule);
+    padding: 20px 18px;
+    margin-bottom: 14px;
   }
-  .receipt::before,
-  .receipt::after {
-    content: "";
-    position: absolute;
-    left: 0; right: 0;
-    height: 10px;
-    background:
-      radial-gradient(circle at 10px 5px, var(--paper) 5px, transparent 5.5px) repeat-x;
-    background-size: 20px 10px;
-  }
-  .receipt::before { top: -5px; }
-  .receipt::after { bottom: -5px; transform: scaleY(-1); }
+  .card h2 { font-size: 14.5px; margin: 0 0 14px; font-weight: 700; }
 
-  .field { margin-bottom: 18px; }
-  .field label {
-    display: block;
-    font-size: 12.5px;
-    font-weight: 700;
-    color: var(--ink-soft);
-    text-transform: none;
-    margin-bottom: 7px;
-  }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px; }
 
   .dropzone {
-    border: 1.5px dashed var(--rule);
-    border-radius: 4px;
-    padding: 20px 14px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease;
-    background: rgba(23,34,59,0.02);
+    border: 1.5px dashed var(--rule); border-radius: 4px; padding: 18px 12px; text-align: center;
+    cursor: pointer; background: rgba(23,34,59,0.02);
   }
   .dropzone.has-file { border-color: var(--ok); background: rgba(47,104,70,0.06); }
-  .dropzone:focus-within { outline: 2px solid var(--stamp); outline-offset: 2px; }
   .dropzone input[type="file"] { display: none; }
-  .dropzone .dz-title { font-weight: 700; font-size: 14.5px; }
-  .dropzone .dz-sub { font-size: 12.5px; color: var(--ink-soft); margin-top: 3px; }
-  .dropzone .dz-file { font-family: 'Space Mono', monospace; font-size: 12.5px; margin-top: 8px; word-break: break-all; }
+  .dropzone .dz-title { font-weight: 700; font-size: 14px; }
+  .dropzone .dz-sub { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+  .dropzone .dz-file { font-family: 'Space Mono', monospace; font-size: 12px; margin-top: 7px; word-break: break-all; }
 
-  .seg {
-    display: flex;
-    border: 1.5px solid var(--ink);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-  .seg button {
-    flex: 1;
-    padding: 11px 8px;
-    background: transparent;
-    border: none;
-    font-family: 'Archivo', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--ink);
-    cursor: pointer;
-    border-right: 1.5px solid var(--ink);
-  }
+  .editing-file { font-family: 'Space Mono', monospace; font-size: 13px; background: rgba(23,34,59,0.04); border: 1.5px solid var(--rule); border-radius: 4px; padding: 10px 12px; word-break: break-all; }
+
+  .seg { display: flex; border: 1.5px solid var(--ink); border-radius: 4px; overflow: hidden; }
+  .seg button { flex: 1; padding: 10px 8px; background: transparent; border: none; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 13.5px; color: var(--ink); cursor: pointer; border-right: 1.5px solid var(--ink); }
   .seg button:last-child { border-right: none; }
   .seg button.active { background: var(--ink); color: var(--paper-card); }
 
-  .row2 { display: flex; gap: 12px; }
+  .row2 { display: flex; gap: 10px; }
   .row2 .field { flex: 1; }
+  .row3 { display: flex; gap: 10px; }
+  .row3 .field { flex: 1; }
 
-  input[type="number"], input[type="text"], select {
-    width: 100%;
-    padding: 11px 12px;
-    border: 1.5px solid var(--rule);
-    border-radius: 4px;
-    font-family: 'Space Mono', monospace;
-    font-size: 14.5px;
-    color: var(--ink);
-    background: #fff;
+  input[type="number"], input[type="text"], input[type="password"] {
+    width: 100%; padding: 10px 11px; border: 1.5px solid var(--rule); border-radius: 4px;
+    font-family: 'Space Mono', monospace; font-size: 14px; color: var(--ink); background: #fff;
   }
-  input:focus, select:focus { outline: 2px solid var(--stamp); outline-offset: 1px; border-color: var(--stamp); }
+  input:focus { outline: 2px solid var(--stamp); outline-offset: 1px; border-color: var(--stamp); }
 
-  .stepper { display: flex; align-items: center; gap: 10px; }
-  .stepper button {
-    width: 38px; height: 38px;
-    border-radius: 4px;
-    border: 1.5px solid var(--ink);
-    background: var(--paper-card);
-    font-size: 18px;
-    font-weight: 700;
-    cursor: pointer;
-    line-height: 1;
-  }
+  .stepper { display: flex; align-items: center; gap: 8px; }
+  .stepper button { width: 34px; height: 34px; border-radius: 4px; border: 1.5px solid var(--ink); background: var(--paper-card); font-size: 16px; font-weight: 700; cursor: pointer; line-height: 1; }
   .stepper input { text-align: center; }
 
-  .divider {
-    border: none;
-    border-top: 1.5px dashed var(--rule);
-    margin: 20px 0;
-  }
+  .inline-total { display: flex; justify-content: space-between; align-items: center; font-family: 'Space Mono', monospace; font-size: 13px; color: var(--ink-soft); margin: 2px 0 14px; }
+  .inline-total b { color: var(--ink); font-size: 15px; }
+  .inline-total b::before { content: "₹"; }
 
-  .price-line {
-    display: flex;
-    justify-content: space-between;
-    font-family: 'Space Mono', monospace;
-    font-size: 13.5px;
-    color: var(--ink-soft);
-    margin-bottom: 6px;
-  }
-  .price-line.total {
-    color: var(--ink);
-    font-weight: 700;
-    font-size: 19px;
-    margin-top: 10px;
-    padding-top: 12px;
-    border-top: 1.5px solid var(--ink);
-  }
-  .price-line.total .amt::before { content: "₹"; }
-
-  .btn {
-    display: block;
-    width: 100%;
-    text-align: center;
-    padding: 15px 14px;
-    border-radius: 4px;
-    border: none;
-    font-family: 'Archivo', sans-serif;
-    font-weight: 700;
-    font-size: 15.5px;
-    cursor: pointer;
-    text-decoration: none;
-  }
-  .btn-primary {
-    background: var(--stamp);
-    color: #fff;
-  }
+  .btn { display: block; width: 100%; text-align: center; padding: 13px 14px; border-radius: 4px; border: none; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 14.5px; cursor: pointer; text-decoration: none; }
+  .btn-primary { background: var(--stamp); color: #fff; }
   .btn-primary:active { background: var(--stamp-dark); }
   .btn-primary:disabled { background: #C7BFAE; color: #8a8375; cursor: not-allowed; }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+  .btn-ok { background: var(--ok); color: #fff; }
+  .btn-sm { padding: 7px 10px; font-size: 12px; width: auto; display: inline-block; }
 
-  .btn-ghost {
-    background: transparent;
-    color: var(--ink);
-    border: 1.5px solid var(--ink);
-    margin-top: 10px;
-  }
+  .error-box { background: #F6E4E1; border: 1.5px solid var(--stamp); color: var(--stamp-dark); padding: 10px 12px; border-radius: 4px; font-size: 13px; margin-bottom: 14px; display: none; }
 
-  .helper { font-size: 12px; color: var(--ink-soft); margin-top: 7px; line-height: 1.5; }
+  /* Cart list */
+  .cart-item { border: 1.5px solid var(--rule); border-radius: 4px; padding: 12px 14px; margin-bottom: 10px; background: #fff; }
+  .cart-item .ci-top { display: flex; justify-content: space-between; gap: 10px; }
+  .cart-item .ci-name { font-weight: 700; font-size: 13.5px; word-break: break-all; }
+  .cart-item .ci-amt { font-family: 'Space Mono', monospace; font-weight: 700; white-space: nowrap; }
+  .cart-item .ci-amt::before { content: "₹"; color: var(--ink-soft); font-weight: 400; }
+  .cart-item .ci-meta { font-family: 'Space Mono', monospace; font-size: 11.5px; color: var(--ink-soft); margin-top: 4px; }
+  .cart-item .ci-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .cart-item .ci-actions button { flex: 1; }
 
-  .token {
-    font-family: 'Space Mono', monospace;
-    background: var(--ink);
-    color: var(--paper-card);
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 3px;
-    letter-spacing: 0.03em;
-  }
+  .empty-cart { text-align: center; color: var(--ink-soft); font-size: 13px; padding: 18px 10px; border: 1.5px dashed var(--rule); border-radius: 4px; }
 
-  .status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-family: 'Space Mono', monospace;
-    font-size: 12.5px;
-    padding: 5px 10px;
-    border-radius: 20px;
-    border: 1.5px solid var(--rule);
-  }
-  .status-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-soft); }
+  .divider { border: none; border-top: 1.5px dashed var(--rule); margin: 16px 0; }
+
+  .price-line { display: flex; justify-content: space-between; font-family: 'Space Mono', monospace; font-size: 13.5px; color: var(--ink-soft); margin-bottom: 6px; }
+  .price-line.total { color: var(--ink); font-weight: 700; font-size: 19px; margin-top: 6px; padding-top: 12px; border-top: 1.5px solid var(--ink); }
+  .price-line.total .amt::before { content: "₹"; }
+
+  .pay-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .pay-tabs button { flex: 1; padding: 10px 8px; border-radius: 4px; border: 1.5px solid var(--ink); background: transparent; font-weight: 700; font-size: 13px; cursor: pointer; }
+  .pay-tabs button.active { background: var(--ink); color: var(--paper-card); }
+  .pay-panel { display: none; }
+  .pay-panel.active { display: block; }
+
+  .qr-wrap { text-align: center; margin: 10px 0 16px; }
+  .qr-wrap img { width: 180px; height: 180px; border: 1.5px solid var(--rule); border-radius: 6px; background: #fff; padding: 8px; }
+  .qr-caption { font-size: 11.5px; color: var(--ink-soft); margin-top: 6px; }
+
+  .upi-id-box { font-family: 'Space Mono', monospace; font-size: 15px; text-align: center; background: rgba(23,34,59,0.04); border: 1.5px solid var(--rule); border-radius: 4px; padding: 10px; margin-bottom: 14px; }
+
+  .token { font-family: 'Space Mono', monospace; background: var(--ink); color: var(--paper-card); display: inline-block; padding: 3px 8px; border-radius: 3px; letter-spacing: 0.03em; }
+
+  .status-pill { display: inline-flex; align-items: center; gap: 6px; font-family: 'Space Mono', monospace; font-size: 12px; padding: 4px 9px; border-radius: 20px; border: 1.5px solid var(--rule); }
+  .status-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-soft); }
   .status-pill.ok { border-color: var(--ok); color: var(--ok); }
   .status-pill.ok .dot { background: var(--ok); }
   .status-pill.wait .dot { animation: pulse 1.4s infinite ease-in-out; }
-
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+  .file-status-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--rule); gap: 10px; }
+  .file-status-row:last-child { border-bottom: none; }
+  .file-status-row .fs-name { font-size: 12.5px; font-weight: 700; word-break: break-all; }
+  .file-status-row .fs-token { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--ink-soft); }
 
   .step-hidden { display: none; }
 
-  .error-box {
-    background: #F6E4E1;
-    border: 1.5px solid var(--stamp);
-    color: var(--stamp-dark);
-    padding: 10px 12px;
-    border-radius: 4px;
-    font-size: 13px;
-    margin-bottom: 16px;
-    display: none;
-  }
-
-  footer.note {
-    text-align: center;
-    color: var(--ink-soft);
-    font-size: 12px;
-    margin-top: 20px;
-    padding: 0 10px;
-  }
+  footer.note { text-align: center; color: var(--ink-soft); font-size: 12px; margin-top: 18px; padding: 0 10px; }
   footer.note a { color: var(--ink); }
 </style>
 </head>
@@ -270,129 +155,179 @@
   <header class="hero">
     <div class="eyebrow">SELF-SERVICE COUNTER</div>
     <h1 id="shopNameHeading">Quick Print Xerox</h1>
-    <p>Upload your file, pick your print settings, pay by UPI, and collect it printed at the counter. No login needed.</p>
+    <p>Add your files, set pages &amp; copies for each, then pay once for the whole order.</p>
   </header>
 
-  <!-- STEP 1: Upload + configure + pay -->
-  <section class="receipt" id="stepOrder">
-    <div class="error-box" id="orderError"></div>
+  <div class="steps">
+    <div class="step active" id="stepDotCart"></div>
+    <div class="step" id="stepDotPay"></div>
+    <div class="step" id="stepDotStatus"></div>
+  </div>
 
-    <div class="field">
-      <label for="fileInput">Your document</label>
-      <label class="dropzone" id="dropzone" for="fileInput">
-        <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.ppt,.pptx,.xls,.xlsx,.txt" />
-        <div class="dz-title">Tap to choose a file</div>
-        <div class="dz-sub">PDF, Word, Excel, PowerPoint, JPG or PNG · up to 25 MB</div>
-        <div class="dz-file" id="dzFileName"></div>
-      </label>
-    </div>
+  <!-- STEP 1: Cart -->
+  <section id="stepCart">
+    <div class="card">
+      <h2 id="formTitle">Add a file</h2>
+      <div class="error-box" id="formError"></div>
 
-    <div class="field">
-      <label>Print type</label>
-      <div class="seg" id="printTypeSeg">
-        <button type="button" data-value="bw" class="active">Black &amp; White</button>
-        <button type="button" data-value="color">Color</button>
+      <div class="field" id="fileFieldWrap">
+        <label for="fileInput">Document</label>
+        <label class="dropzone" id="dropzone" for="fileInput">
+          <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.ppt,.pptx,.xls,.xlsx,.txt" />
+          <div class="dz-title">Tap to choose a file</div>
+          <div class="dz-sub">PDF, Word, Excel, PowerPoint, JPG or PNG · up to 25 MB</div>
+          <div class="dz-file" id="dzFileName"></div>
+        </label>
       </div>
-    </div>
+      <div class="field step-hidden" id="editingFileWrap">
+        <label>Document</label>
+        <div class="editing-file" id="editingFileName"></div>
+      </div>
 
-    <div class="row2">
       <div class="field">
-        <label for="pagesInput">Pages to print</label>
-        <div class="stepper">
-          <button type="button" id="pagesMinus" aria-label="Decrease pages">–</button>
-          <input type="number" id="pagesInput" min="1" value="1" />
-          <button type="button" id="pagesPlus" aria-label="Increase pages">+</button>
+        <label>Print type</label>
+        <div class="seg" id="printTypeSeg">
+          <button type="button" data-value="bw" class="active">Black &amp; White</button>
+          <button type="button" data-value="color">Color</button>
         </div>
       </div>
+
+      <div class="row3">
+        <div class="field">
+          <label for="startPageInput">Start page</label>
+          <input type="number" id="startPageInput" min="1" value="1" />
+        </div>
+        <div class="field">
+          <label for="endPageInput">End page</label>
+          <input type="number" id="endPageInput" min="1" value="1" />
+        </div>
+      </div>
+
       <div class="field">
         <label for="copiesInput">Copies</label>
         <div class="stepper">
-          <button type="button" id="copiesMinus" aria-label="Decrease copies">–</button>
+          <button type="button" id="copiesMinus">–</button>
           <input type="number" id="copiesInput" min="1" value="1" />
-          <button type="button" id="copiesPlus" aria-label="Increase copies">+</button>
+          <button type="button" id="copiesPlus">+</button>
         </div>
+      </div>
+
+      <div class="field">
+        <label for="noteInput">Note (optional)</label>
+        <input type="text" id="noteInput" placeholder="e.g. staple, or double-sided" />
+      </div>
+
+      <div class="inline-total">
+        <span id="itemCalcLabel">0 pages × 1 copy</span>
+        <b id="itemCalcAmt">0.00</b>
+      </div>
+
+      <button class="btn btn-primary" id="addItemBtn">Add to order</button>
+      <div style="margin-top:8px;">
+        <button class="btn btn-ghost step-hidden" id="cancelEditBtn">Cancel edit</button>
       </div>
     </div>
 
-    <div class="field">
-      <label for="rangeInput">Page range (optional)</label>
-      <input type="text" id="rangeInput" placeholder="e.g. all, or 1-3,5,9" />
-      <div class="helper">Leave as "all" to print every page. Only used to tell the shop which pages — the page count above is what you're billed for.</div>
+    <div class="card">
+      <h2>Your files (<span id="cartCount">0</span>)</h2>
+      <div id="cartList"><div class="empty-cart">No files added yet. Fill the form above and tap "Add to order".</div></div>
+
+      <hr class="divider" />
+      <div class="price-line total"><span>Order total</span><span class="amt" id="cartTotal">0.00</span></div>
+
+      <button class="btn btn-primary" id="checkoutBtn" style="margin-top:14px;" disabled>Add a file to continue</button>
     </div>
-
-    <div class="field">
-      <label for="noteInput">Note for the shop (optional)</label>
-      <input type="text" id="noteInput" placeholder="e.g. staple, or double-sided" />
-    </div>
-
-    <hr class="divider" />
-
-    <div class="price-line"><span id="priceRateLabel">Rate — B&amp;W</span><span id="priceRate">₹0.00 / page</span></div>
-    <div class="price-line"><span id="priceQtyLabel">Pages × copies</span><span id="priceQty">1 × 1</span></div>
-    <div class="price-line total"><span>Total due</span><span class="amt" id="priceTotal">0.00</span></div>
-
-    <button class="btn btn-primary" id="createJobBtn" disabled>Choose a file to continue</button>
   </section>
 
-  <!-- STEP 2: Pay via UPI -->
-  <section class="receipt step-hidden" id="stepPay" style="margin-top:18px;">
-    <div class="error-box" id="payError"></div>
-    <div class="field">
-      <label>Order token</label>
-      <span class="token" id="tokenDisplay">PX-0000</span>
+  <!-- STEP 2: Payment -->
+  <section id="stepPay" class="step-hidden">
+    <div class="card">
+      <div class="error-box" id="payError"></div>
+      <div class="field">
+        <label>Order token</label>
+        <span class="token" id="tokenDisplay">PX-0000</span>
+      </div>
+      <div class="price-line total" style="margin-top:14px;"><span>Amount to pay</span><span class="amt" id="payAmount">0.00</span></div>
+
+      <hr class="divider" />
+
+      <div class="pay-tabs">
+        <button type="button" class="active" id="tabUpi">Pay by UPI</button>
+        <button type="button" id="tabCash">Pay cash at counter</button>
+      </div>
+
+      <div class="pay-panel active" id="panelUpi">
+        <div class="upi-id-box" id="upiIdBox">shopowner@upi</div>
+        <a class="btn btn-primary" id="upiPayBtn" href="#" target="_blank" rel="noopener">Tap to pay with UPI app</a>
+        <div class="qr-wrap">
+          <img id="upiQrImg" src="" alt="UPI payment QR code" />
+          <div class="qr-caption">Or scan this QR with any UPI app</div>
+        </div>
+        <div class="field" style="margin-top:4px;">
+          <label for="utrInput">UPI transaction reference (UTR)</label>
+          <input type="text" id="utrInput" placeholder="e.g. 402917563210" />
+        </div>
+        <button class="btn btn-primary" id="confirmPayBtn">I've paid — submit for printing</button>
+      </div>
+
+      <div class="pay-panel" id="panelCash">
+        <p style="font-size:13px; color:var(--ink-soft); margin-top:0;">Walk up to the counter, pay the amount above in cash, and show your order token. The shop will mark it received and start printing.</p>
+        <button class="btn btn-ok" id="confirmCashBtn">I'll pay cash at the counter</button>
+      </div>
+
+      <button class="btn btn-ghost" id="backToCartBtn" style="margin-top:14px;">Back to edit order</button>
     </div>
-    <div class="price-line total" style="margin-top:0;"><span>Amount to pay</span><span class="amt" id="payAmount">0.00</span></div>
-    <p class="helper" style="margin-top:14px;">Tap below to open your UPI app and pay <b id="payToName">the shop</b>. After paying, copy the UTR / transaction reference number shown in your UPI app and enter it here to release your job to the print queue.</p>
-
-    <a class="btn btn-primary" id="upiPayBtn" href="#" target="_blank" rel="noopener" style="margin-top:14px;">Pay with UPI app</a>
-
-    <div class="field" style="margin-top:18px;">
-      <label for="utrInput">UPI transaction reference (UTR)</label>
-      <input type="text" id="utrInput" placeholder="e.g. 402917563210" />
-    </div>
-
-    <button class="btn btn-primary" id="confirmPayBtn">I've paid — submit for printing</button>
-    <button class="btn btn-ghost" id="cancelPayBtn">Back / edit order</button>
   </section>
 
   <!-- STEP 3: Status -->
-  <section class="receipt step-hidden" id="stepStatus" style="margin-top:18px;">
-    <div class="field">
-      <label>Order token</label>
-      <span class="token" id="statusToken">PX-0000</span>
+  <section id="stepStatus" class="step-hidden">
+    <div class="card">
+      <div class="field">
+        <label>Order token</label>
+        <span class="token" id="statusToken">PX-0000</span>
+      </div>
+      <div class="field" style="margin-top:14px;">
+        <label>Overall status</label>
+        <span class="status-pill wait" id="statusPill"><span class="dot"></span><span id="statusText">Waiting for payment</span></span>
+      </div>
+      <p class="helper" id="statusHelper" style="font-size:12px; color:var(--ink-soft); margin-top:12px;">Keep this page open. It refreshes automatically.</p>
+
+      <hr class="divider" />
+      <div id="fileStatusList"></div>
+
+      <button class="btn btn-ghost" id="newOrderBtn" style="margin-top:16px;">Start a new order</button>
     </div>
-    <div class="field" style="margin-top:16px;">
-      <label>Status</label>
-      <span class="status-pill wait" id="statusPill"><span class="dot"></span><span id="statusText">Waiting for payment confirmation</span></span>
-    </div>
-    <p class="helper" id="statusHelper" style="margin-top:14px;">Keep this page open. It refreshes automatically. Show your token at the counter once it says "Printed".</p>
-    <button class="btn btn-ghost" id="newOrderBtn" style="margin-top:14px;">Start a new order</button>
   </section>
 
-  <footer class="note">Prices are set by the shop and may change without notice. Payments are verified against your UPI transaction reference before printing begins.</footer>
+  <footer class="note">
+    Prices are set by the shop and may change without notice. UPI payments are verified against your transaction reference before printing begins.
+    <div style="margin-top:12px;"><a href="/owner">Shop staff sign-in →</a></div>
+  </footer>
 </div>
 
 <script>
 (function () {
-  const API = ''; // same origin
-  let settings = null;
-  let selectedFile = null;
-  let printType = 'bw';
-  let currentJob = null;
-  let statusPoll = null;
-
+  const API = '';
   const $ = (id) => document.getElementById(id);
 
-  // ---- Load pricing on page load ----
+  let settings = null;
+  let cart = []; // { localId, file, fileName, printType, startPage, endPage, copies, note, totalPages }
+  let editIndex = -1; // -1 = adding new, else index being edited
+  let selectedFile = null;
+  let printType = 'bw';
+  let currentOrder = null;
+  let statusPoll = null;
+
+  // ---- Load settings ----
   async function loadSettings() {
     try {
       const res = await fetch(`${API}/api/settings`);
       settings = await res.json();
       $('shopNameHeading').textContent = settings.shopName || 'Quick Print Xerox';
-      $('payToName').textContent = settings.owner_display_name || settings.shopName || 'the shop';
-      recalcPrice();
+      $('upiIdBox').textContent = settings.owner_upi_id || '—';
+      recalcItemPrice();
     } catch (e) {
-      showError('orderError', 'Could not load shop pricing. Check your connection and reload.');
+      showError('formError', 'Could not load shop pricing. Check your connection and reload.');
     }
   }
 
@@ -402,115 +337,251 @@
     box.style.display = msg ? 'block' : 'none';
   }
 
-  // ---- File selection ----
+  function money(n) { return (Math.round(n * 100) / 100).toFixed(2); }
+
+  // ---- File select ----
   $('fileInput').addEventListener('change', (e) => {
     selectedFile = e.target.files[0] || null;
     const dz = $('dropzone');
     if (selectedFile) {
       dz.classList.add('has-file');
       $('dzFileName').textContent = selectedFile.name;
-      $('createJobBtn').disabled = false;
-      $('createJobBtn').textContent = 'Continue to payment';
     } else {
       dz.classList.remove('has-file');
       $('dzFileName').textContent = '';
-      $('createJobBtn').disabled = true;
-      $('createJobBtn').textContent = 'Choose a file to continue';
     }
   });
 
-  // ---- Print type toggle ----
   $('printTypeSeg').addEventListener('click', (e) => {
     const btn = e.target.closest('button');
     if (!btn) return;
     [...$('printTypeSeg').children].forEach((b) => b.classList.remove('active'));
     btn.classList.add('active');
     printType = btn.dataset.value;
-    recalcPrice();
+    recalcItemPrice();
   });
 
-  // ---- Steppers ----
-  function stepper(inputId, minusId, plusId) {
+  function stepper(inputId, minusId, plusId, min) {
     $(minusId).addEventListener('click', () => {
       const inp = $(inputId);
-      inp.value = Math.max(1, (parseInt(inp.value, 10) || 1) - 1);
-      recalcPrice();
+      inp.value = Math.max(min, (parseInt(inp.value, 10) || min) - 1);
+      recalcItemPrice();
     });
     $(plusId).addEventListener('click', () => {
       const inp = $(inputId);
-      inp.value = (parseInt(inp.value, 10) || 1) + 1;
-      recalcPrice();
+      inp.value = (parseInt(inp.value, 10) || min) + 1;
+      recalcItemPrice();
     });
-    $(inputId).addEventListener('input', recalcPrice);
+    $(inputId).addEventListener('input', recalcItemPrice);
   }
-  stepper('pagesInput', 'pagesMinus', 'pagesPlus');
-  stepper('copiesInput', 'copiesMinus', 'copiesPlus');
+  stepper('copiesInput', 'copiesMinus', 'copiesPlus', 1);
+  $('startPageInput').addEventListener('input', recalcItemPrice);
+  $('endPageInput').addEventListener('input', recalcItemPrice);
 
-  // ---- Live price calc ----
-  function recalcPrice() {
+  function currentItemPages() {
+    const start = Math.max(1, parseInt($('startPageInput').value, 10) || 1);
+    const end = Math.max(start, parseInt($('endPageInput').value, 10) || start);
+    return { start, end, pages: end - start + 1 };
+  }
+
+  function recalcItemPrice() {
     if (!settings) return;
-    const pages = Math.max(1, parseInt($('pagesInput').value, 10) || 1);
+    const { pages } = currentItemPages();
     const copies = Math.max(1, parseInt($('copiesInput').value, 10) || 1);
     const rate = printType === 'color' ? settings.color_price_per_page : settings.bw_price_per_page;
-    const total = rate * pages * copies;
-
-    $('priceRateLabel').textContent = `Rate — ${printType === 'color' ? 'Color' : 'B&W'}`;
-    $('priceRate').textContent = `₹${rate.toFixed(2)} / page`;
-    $('priceQtyLabel').textContent = 'Pages × copies';
-    $('priceQty').textContent = `${pages} × ${copies}`;
-    $('priceTotal').textContent = total.toFixed(2);
+    const amt = rate * pages * copies;
+    $('itemCalcLabel').textContent = `${pages} page${pages === 1 ? '' : 's'} × ${copies} ${copies === 1 ? 'copy' : 'copies'} @ ₹${rate.toFixed(2)}`;
+    $('itemCalcAmt').textContent = money(amt);
   }
 
-  // ---- Create job ----
-  $('createJobBtn').addEventListener('click', async () => {
-    showError('orderError', '');
-    if (!selectedFile) return;
+  // ---- Add / Save item ----
+  $('addItemBtn').addEventListener('click', () => {
+    showError('formError', '');
+    const { start, end, pages } = currentItemPages();
+    const copies = Math.max(1, parseInt($('copiesInput').value, 10) || 1);
+    const note = $('noteInput').value || '';
 
-    $('createJobBtn').disabled = true;
-    $('createJobBtn').textContent = 'Uploading…';
+    if (editIndex === -1) {
+      if (!selectedFile) {
+        showError('formError', 'Choose a file first.');
+        return;
+      }
+      cart.push({
+        localId: Date.now() + Math.random(),
+        file: selectedFile,
+        fileName: selectedFile.name,
+        printType, startPage: start, endPage: end, copies, note,
+        totalPages: pages,
+      });
+    } else {
+      cart[editIndex] = Object.assign({}, cart[editIndex], { printType, startPage: start, endPage: end, copies, note, totalPages: pages });
+      editIndex = -1;
+    }
+
+    resetForm();
+    renderCart();
+  });
+
+  $('cancelEditBtn').addEventListener('click', () => {
+    editIndex = -1;
+    resetForm();
+  });
+
+  function resetForm() {
+    selectedFile = null;
+    printType = 'bw';
+    $('dropzone').classList.remove('has-file');
+    $('dzFileName').textContent = '';
+    $('fileInput').value = '';
+    $('startPageInput').value = 1;
+    $('endPageInput').value = 1;
+    $('copiesInput').value = 1;
+    $('noteInput').value = '';
+    [...$('printTypeSeg').children].forEach((b) => b.classList.toggle('active', b.dataset.value === 'bw'));
+    $('formTitle').textContent = 'Add a file';
+    $('addItemBtn').textContent = 'Add to order';
+    $('fileFieldWrap').classList.remove('step-hidden');
+    $('editingFileWrap').classList.add('step-hidden');
+    $('cancelEditBtn').classList.add('step-hidden');
+    recalcItemPrice();
+  }
+
+  function editItem(idx) {
+    const item = cart[idx];
+    editIndex = idx;
+    printType = item.printType;
+    $('startPageInput').value = item.startPage;
+    $('endPageInput').value = item.endPage;
+    $('copiesInput').value = item.copies;
+    $('noteInput').value = item.note || '';
+    [...$('printTypeSeg').children].forEach((b) => b.classList.toggle('active', b.dataset.value === item.printType));
+    $('formTitle').textContent = 'Edit file settings';
+    $('addItemBtn').textContent = 'Save changes';
+    $('fileFieldWrap').classList.add('step-hidden');
+    $('editingFileWrap').classList.remove('step-hidden');
+    $('editingFileName').textContent = item.fileName;
+    $('cancelEditBtn').classList.remove('step-hidden');
+    recalcItemPrice();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function removeItem(idx) {
+    cart.splice(idx, 1);
+    if (editIndex === idx) { editIndex = -1; resetForm(); }
+    renderCart();
+  }
+
+  function itemRate(item) {
+    if (!settings) return 0;
+    return item.printType === 'color' ? settings.color_price_per_page : settings.bw_price_per_page;
+  }
+  function itemTotal(item) {
+    return itemRate(item) * item.totalPages * item.copies;
+  }
+
+  function renderCart() {
+    $('cartCount').textContent = cart.length;
+    const list = $('cartList');
+    if (cart.length === 0) {
+      list.innerHTML = '<div class="empty-cart">No files added yet. Fill the form above and tap "Add to order".</div>';
+    } else {
+      list.innerHTML = cart.map((item, idx) => `
+        <div class="cart-item">
+          <div class="ci-top">
+            <div class="ci-name">${escapeHtml(item.fileName)}</div>
+            <div class="ci-amt">${money(itemTotal(item))}</div>
+          </div>
+          <div class="ci-meta">${item.printType === 'color' ? 'Color' : 'B&amp;W'} · pages ${item.startPage}-${item.endPage} (${item.totalPages}pg) × ${item.copies}${item.note ? ' · ' + escapeHtml(item.note) : ''}</div>
+          <div class="ci-actions">
+            <button class="btn btn-ghost btn-sm" data-edit="${idx}">Edit</button>
+            <button class="btn btn-ghost btn-sm" data-remove="${idx}">Remove</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    const total = cart.reduce((sum, item) => sum + itemTotal(item), 0);
+    $('cartTotal').textContent = money(total);
+    $('checkoutBtn').disabled = cart.length === 0;
+    $('checkoutBtn').textContent = cart.length === 0 ? 'Add a file to continue' : 'Proceed to payment';
+
+    list.querySelectorAll('[data-edit]').forEach((b) => b.addEventListener('click', () => editItem(Number(b.dataset.edit))));
+    list.querySelectorAll('[data-remove]').forEach((b) => b.addEventListener('click', () => removeItem(Number(b.dataset.remove))));
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+
+  // ---- Checkout: upload everything, create the order ----
+  $('checkoutBtn').addEventListener('click', async () => {
+    if (cart.length === 0) return;
+    $('checkoutBtn').disabled = true;
+    $('checkoutBtn').textContent = 'Uploading…';
 
     const fd = new FormData();
-    fd.append('file', selectedFile);
-    fd.append('printType', printType);
-    fd.append('copies', $('copiesInput').value);
-    fd.append('pageRange', $('rangeInput').value || 'all');
-    fd.append('totalPages', $('pagesInput').value);
-    fd.append('customerNote', $('noteInput').value || '');
+    const items = cart.map((item) => ({
+      printType: item.printType, copies: item.copies,
+      startPage: item.startPage, endPage: item.endPage, customerNote: item.note,
+    }));
+    cart.forEach((item) => fd.append('files', item.file));
+    fd.append('items', JSON.stringify(items));
 
     try {
-      const res = await fetch(`${API}/api/jobs/create`, { method: 'POST', body: fd });
+      const res = await fetch(`${API}/api/orders/create`, { method: 'POST', body: fd });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
-
-      currentJob = data;
+      currentOrder = data;
       goToPay();
     } catch (e) {
-      showError('orderError', e.message);
-      $('createJobBtn').disabled = false;
-      $('createJobBtn').textContent = 'Continue to payment';
+      alert(e.message);
+      $('checkoutBtn').disabled = false;
+      $('checkoutBtn').textContent = 'Proceed to payment';
     }
   });
 
-  // ---- Step 2: Pay ----
+  // ---- Step 2: Payment ----
+  function setStepDots(active) {
+    const map = { cart: ['active', '', ''], pay: ['done', 'active', ''], status: ['done', 'done', 'active'] };
+    const [c, p, s] = map[active];
+    $('stepDotCart').className = 'step ' + c;
+    $('stepDotPay').className = 'step ' + p;
+    $('stepDotStatus').className = 'step ' + s;
+  }
+
   function goToPay() {
-    $('stepOrder').classList.add('step-hidden');
+    $('stepCart').classList.add('step-hidden');
     $('stepPay').classList.remove('step-hidden');
+    setStepDots('pay');
     showError('payError', '');
 
-    $('tokenDisplay').textContent = currentJob.tokenId;
-    $('payAmount').textContent = currentJob.totalAmount.toFixed(2);
+    $('tokenDisplay').textContent = currentOrder.orderToken;
+    $('payAmount').textContent = money(currentOrder.totalAmount);
 
     const upiId = settings.owner_upi_id;
     const payeeName = encodeURIComponent(settings.owner_display_name || settings.shopName || 'Print Shop');
-    const amount = currentJob.totalAmount.toFixed(2);
-    const note = encodeURIComponent(`Print job ${currentJob.tokenId}`);
+    const amount = money(currentOrder.totalAmount);
+    const note = encodeURIComponent(`Print order ${currentOrder.orderToken}`);
     const upiLink = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${payeeName}&am=${amount}&cu=INR&tn=${note}`;
     $('upiPayBtn').setAttribute('href', upiLink);
+    $('upiQrImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiLink)}`;
   }
 
-  $('cancelPayBtn').addEventListener('click', () => {
+  $('backToCartBtn').addEventListener('click', () => {
     $('stepPay').classList.add('step-hidden');
-    $('stepOrder').classList.remove('step-hidden');
+    $('stepCart').classList.remove('step-hidden');
+    setStepDots('cart');
+    $('checkoutBtn').disabled = false;
+    $('checkoutBtn').textContent = 'Proceed to payment';
+  });
+
+  $('tabUpi').addEventListener('click', () => {
+    $('tabUpi').classList.add('active'); $('tabCash').classList.remove('active');
+    $('panelUpi').classList.add('active'); $('panelCash').classList.remove('active');
+  });
+  $('tabCash').addEventListener('click', () => {
+    $('tabCash').classList.add('active'); $('tabUpi').classList.remove('active');
+    $('panelCash').classList.add('active'); $('panelUpi').classList.remove('active');
   });
 
   $('confirmPayBtn').addEventListener('click', async () => {
@@ -522,16 +593,13 @@
     }
     $('confirmPayBtn').disabled = true;
     $('confirmPayBtn').textContent = 'Submitting…';
-
     try {
-      const res = await fetch(`${API}/api/jobs/${currentJob._id}/pay`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ utr }),
+      const res = await fetch(`${API}/api/orders/${currentOrder.orderId}/pay`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ utr }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Could not submit payment');
-      currentJob = data;
+      currentOrder.jobs = data.jobs;
       goToStatus();
     } catch (e) {
       showError('payError', e.message);
@@ -541,50 +609,87 @@
     }
   });
 
-  // ---- Step 3: Status polling ----
+  $('confirmCashBtn').addEventListener('click', async () => {
+    $('confirmCashBtn').disabled = true;
+    $('confirmCashBtn').textContent = 'Submitting…';
+    try {
+      const res = await fetch(`${API}/api/orders/${currentOrder.orderId}/cash`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not submit');
+      currentOrder.jobs = data.jobs;
+      goToStatus();
+    } catch (e) {
+      showError('payError', e.message);
+    } finally {
+      $('confirmCashBtn').disabled = false;
+      $('confirmCashBtn').textContent = "I'll pay cash at the counter";
+    }
+  });
+
+  // ---- Step 3: Status ----
   function goToStatus() {
     $('stepPay').classList.add('step-hidden');
     $('stepStatus').classList.remove('step-hidden');
-    $('statusToken').textContent = currentJob.tokenId;
-    renderStatus(currentJob.printStatus);
+    setStepDots('status');
+    $('statusToken').textContent = currentOrder.orderToken;
+    renderOrderStatus(currentOrder.jobs);
 
     if (statusPoll) clearInterval(statusPoll);
     statusPoll = setInterval(async () => {
       try {
-        const res = await fetch(`${API}/api/jobs/${currentJob._id}`);
+        const res = await fetch(`${API}/api/orders/${currentOrder.orderId}`);
         const data = await res.json();
         if (res.ok) {
-          currentJob = data;
-          renderStatus(data.printStatus);
-          if (data.printStatus === 'completed' || data.printStatus === 'failed') {
-            clearInterval(statusPoll);
-          }
+          currentOrder.jobs = data.jobs;
+          renderOrderStatus(data.jobs);
+          const allDone = data.jobs.every((j) => j.printStatus === 'completed' || j.printStatus === 'failed');
+          if (allDone) clearInterval(statusPoll);
         }
-      } catch (e) { /* ignore transient errors, keep polling */ }
+      } catch (e) { /* keep polling through transient errors */ }
     }, 4000);
   }
 
-  function renderStatus(status) {
+  function renderOrderStatus(jobs) {
     const pill = $('statusPill');
     const text = $('statusText');
     const helper = $('statusHelper');
     pill.classList.remove('ok', 'wait');
 
+    let overall = 'awaiting_payment';
+    if (jobs.every((j) => j.printStatus === 'completed')) overall = 'completed';
+    else if (jobs.some((j) => j.printStatus === 'failed')) overall = 'failed';
+    else if (jobs.some((j) => j.printStatus === 'printing')) overall = 'printing';
+    else if (jobs.every((j) => j.printStatus === 'queued' || j.printStatus === 'completed')) overall = 'queued';
+    else if (jobs[0].paymentMethod === 'cash' && jobs[0].paymentStatus === 'pending') overall = 'cash_pending';
+
     const map = {
-      awaiting_payment: ['Waiting for payment confirmation', 'wait', 'Submit your UTR to move this job into the print queue.'],
-      queued: ['Queued for printing', 'wait', 'Your payment is confirmed. The shop will print it shortly.'],
+      awaiting_payment: ['Waiting for payment confirmation', 'wait', 'Submit your UTR, or pay at the counter, to move this order into the print queue.'],
+      cash_pending: ['Waiting for cash payment', 'wait', 'Please pay at the counter and show your order token. Printing starts once the shop confirms.'],
+      queued: ['Queued for printing', 'wait', 'Payment confirmed. The shop will print your files shortly.'],
       printing: ['Printing now', 'wait', 'Almost done — stay nearby to collect it.'],
-      completed: ['Printed — ready for pickup', 'ok', 'Show your token at the counter to collect your prints.'],
-      failed: ['Something went wrong', '', 'Please show your token at the counter — the shop will help sort it out.'],
+      completed: ['All printed — ready for pickup', 'ok', 'Show your token at the counter to collect your prints.'],
+      failed: ['Something went wrong with one or more files', '', 'Please show your token at the counter — the shop will help sort it out.'],
     };
-    const [label, cls, help] = map[status] || map.awaiting_payment;
+    const [label, cls, help] = map[overall];
     text.textContent = label;
     if (cls) pill.classList.add(cls);
     helper.textContent = help;
+
+    $('fileStatusList').innerHTML = jobs.map((j) => `
+      <div class="file-status-row">
+        <div>
+          <div class="fs-name">${escapeHtml(j.fileName)}</div>
+          <div class="fs-token">${j.tokenId}</div>
+        </div>
+        <span class="status-pill ${j.printStatus === 'completed' ? 'ok' : 'wait'}"><span class="dot"></span>${j.printStatus.replace('_', ' ')}</span>
+      </div>
+    `).join('');
   }
 
   $('newOrderBtn').addEventListener('click', () => window.location.reload());
 
+  resetForm();
+  renderCart();
   loadSettings();
 })();
 </script>

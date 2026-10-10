@@ -1,4 +1,7 @@
 requests>=2.31.0
 
-# Windows only — uncomment when installing on the shop PC if it runs Windows:
-# pywin32>=306
+# tkinter (used for the print_agent_gui.py window) ships built-in with the
+# official Python installer on Windows and macOS -- nothing extra to install.
+# On Linux only, if you see "No module named tkinter", install it with:
+#   sudo apt install python3-tk        (Debian/Ubuntu)
+#   sudo dnf install python3-tkinter   (Fedora)
