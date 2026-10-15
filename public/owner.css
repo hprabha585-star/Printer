@@ -1,0 +1,55 @@
+/* Owner dashboard extras (builds on style.css) */
+.tabs { display: flex; gap: 4px; overflow-x: auto; margin: 12px 0 16px; border-bottom: 2px solid var(--ink); -webkit-overflow-scrolling: touch; }
+.tabs button { flex: 0 0 auto; background: transparent; color: var(--ink); border: 0; border-radius: var(--radius) var(--radius) 0 0; font: 700 .85rem var(--mono); text-transform: uppercase; letter-spacing: .04em; min-height: 44px; }
+.tabs button.on { background: var(--ink); color: var(--paper-2); }
+
+.cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+.card { background: var(--paper-2); padding: 14px; border-top: 4px solid var(--ink); box-shadow: 0 4px 14px rgba(29,42,72,.07); }
+.card .k { font: 700 .74rem var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); }
+.card .v { font-size: 1.7rem; font-weight: 700; margin: 4px 0; }
+.card .s { font-size: .78rem; color: var(--ink-soft); }
+
+.att { border: 2px solid var(--line); border-left: 6px solid var(--warn); padding: 10px 12px; margin-bottom: 10px; background: #fff; }
+.att.held { border-left-color: var(--stamp); }
+.att .top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+.att .acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.att .acts button { flex: 1 1 160px; }
+
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+.tablewrap { overflow-x: auto; }
+table.jobs { width: 100%; border-collapse: collapse; font-size: .86rem; }
+table.jobs th { text-align: left; font: 700 .7rem var(--mono); text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); border-bottom: 2px solid var(--ink); padding: 6px; white-space: nowrap; }
+table.jobs td { border-bottom: 1px dashed var(--line); padding: 8px 6px; vertical-align: top; }
+table.jobs td .sub { color: var(--ink-soft); font-size: .78rem; }
+table.jobs .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.refund { color: var(--stamp); font-weight: 700; font-size: .75rem; }
+
+.prow { display: grid; grid-template-columns: 1fr auto auto auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+.prow .check { margin: 0; font-size: .9rem; white-space: nowrap; }
+.pc { padding: 10px 0; border-bottom: 1px dashed var(--line); }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+.dot.on { background: var(--ok); } .dot.off { background: var(--ink-faint); }
+
+.qr.big svg { width: 320px; height: 320px; padding: 12px; }
+.qrshop { font: 700 2rem var(--mono); text-transform: uppercase; margin: 16px 0 4px; }
+.qrsteps { font-size: 1.05rem; font-weight: 600; }
+
+@media (max-width: 760px) {
+  .cards { grid-template-columns: 1fr 1fr; }
+  .grid3 { grid-template-columns: 1fr; }
+  .prow { grid-template-columns: 1fr 1fr; }
+  .prow input[type=text] { grid-column: 1 / -1; }
+  /* table rows become cards on phones */
+  table.jobs thead { display: none; }
+  table.jobs, table.jobs tbody, table.jobs tr, table.jobs td { display: block; width: 100%; }
+  table.jobs tr { background: #fff; border: 2px solid var(--line); margin-bottom: 10px; padding: 6px 10px; }
+  table.jobs td { border: 0; padding: 4px 0 4px 96px; position: relative; min-height: 26px; }
+  table.jobs td::before { content: attr(data-l); position: absolute; left: 0; top: 6px; width: 90px; font: 700 .68rem var(--mono); text-transform: uppercase; color: var(--ink-faint); }
+}
+@media print {
+  .tabs, header.shop, #tab-today, #tab-files, #tab-printers, #tab-settings { display: none !important; }
+  #tab-qr { display: block !important; }
+  .qrsheet { padding-top: 40px; }
+  .qr.big svg { width: 11cm; height: 11cm; }
+}

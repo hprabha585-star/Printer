@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d2a48">
+<meta name="robots" content="noindex">
+<title>Shop dashboard</title>
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/owner.css">
+</head>
+<body>
+<main class="wrap wide">
+  <header class="shop noprint">
+    <h1 id="shopName">Shop dashboard</h1>
+    <div class="sub">Owner dashboard</div>
+  </header>
+
+  <!-- LOGIN -->
+  <section id="login" class="hidden" style="max-width:420px;margin:0 auto">
+    <div class="receipt torn">
+      <h2>Sign in</h2>
+      <form id="loginForm">
+        <div id="userFields">
+          <label for="lUser">Username</label><input type="text" id="lUser" autocomplete="username" autocapitalize="none">
+          <label for="lPass">Password</label><input type="password" id="lPass" autocomplete="current-password">
+        </div>
+        <div id="masterFields" class="hidden">
+          <label for="lMaster">Master key</label><input type="password" id="lMaster" autocomplete="off">
+          <p class="hint">The master key is the OWNER_MASTER_KEY set on the hosting. Use it the first time, or if you forget your password.</p>
+        </div>
+        <button class="btn-block" style="margin-top:14px">Sign in</button>
+        <p class="hint" style="text-align:center"><a href="#" id="toggleMaster">First time / forgot password? Use the master key</a></p>
+        <div id="loginErr" class="notice err hidden"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- SET CREDENTIALS -->
+  <section id="setup" class="hidden" style="max-width:420px;margin:0 auto">
+    <div class="receipt torn">
+      <h2 id="setupTitle">Create your login</h2>
+      <p class="hint">Choose a username and password for this dashboard. The master key will still work if you forget them.</p>
+      <form id="setupForm">
+        <label for="sUser">Username</label><input type="text" id="sUser" autocapitalize="none" autocomplete="username">
+        <label for="sPass">New password (8+ characters)</label><input type="password" id="sPass" autocomplete="new-password">
+        <label for="sPass2">Repeat password</label><input type="password" id="sPass2" autocomplete="new-password">
+        <button class="btn-block" style="margin-top:14px">Save login</button>
+        <button type="button" class="btn-ghost btn-block hidden" id="setupCancel" style="margin-top:8px">Cancel</button>
+        <div id="setupErr" class="notice err hidden"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section id="dash" class="hidden">
+    <nav class="tabs noprint" id="tabs">
+      <button data-tab="today" class="on">Today</button>
+      <button data-tab="files">Files</button>
+      <button data-tab="printers">Printers &amp; PCs</button>
+      <button data-tab="settings">Settings</button>
+      <button data-tab="qr">Shop QR</button>
+    </nav>
+
+    <!-- TODAY -->
+    <div class="tab" id="tab-today">
+      <div id="warnings"></div>
+      <div class="cards">
+        <div class="card"><div class="k">Today</div><div class="v price" id="cToday">₹0</div><div class="s mono" id="cTodaySplit"></div></div>
+        <div class="card"><div class="k">This month</div><div class="v price" id="cMonth">₹0</div><div class="s mono" id="cMonthSplit"></div></div>
+        <div class="card"><div class="k">Printed today</div><div class="v price" id="cPrinted">0</div><div class="s">files</div></div>
+        <div class="card"><div class="k">In queue</div><div class="v price" id="cQueue">0</div><div class="s">waiting / printing / held</div></div>
+      </div>
+      <div class="receipt">
+        <h2>Needs your attention</h2>
+        <div id="attention"><p class="hint">Nothing right now ✓</p></div>
+      </div>
+      <div class="receipt">
+        <div class="row" style="justify-content:space-between"><h2 style="margin:0">Recent files</h2><button class="btn-ghost btn-small" data-tab-link="files" style="flex:0 0 auto;white-space:nowrap">See all</button></div>
+        <div id="recentShort"></div>
+      </div>
+    </div>
+
+    <!-- FILES -->
+    <div class="tab hidden" id="tab-files">
+      <div class="receipt">
+        <h2>Recent files</h2>
+        <div class="tablewrap"><table class="jobs" id="jobsTable"></table></div>
+      </div>
+    </div>
+
+    <!-- PRINTERS & PCs -->
+    <div class="tab hidden" id="tab-printers">
+      <div class="receipt">
+        <h2>Printers</h2>
+        <p class="hint">These names are shared by all shop computers. On each computer, the Print Connector links its own printers to these names.</p>
+        <div id="printerList"></div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn-ghost" id="addPrinter">＋ Add printer</button>
+          <button id="savePrinters">Save printers</button>
+        </div>
+        <div id="printerMsg" class="notice hidden"></div>
+      </div>
+      <div class="receipt">
+        <h2>Connected computers</h2>
+        <div id="computers"><p class="hint">No computer has connected yet.</p></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="tab hidden" id="tab-settings">
+      <form class="receipt" id="settingsForm">
+        <h2>Shop</h2>
+        <label for="fShop">Shop name</label><input type="text" id="fShop" maxlength="120">
+        <label class="check"><input type="checkbox" id="fAccepting"> Accepting orders (customers can upload)</label>
+
+        <hr class="dash"><h2>Prices (per page, ₹)</h2>
+        <div class="grid3">
+          <div><label for="fBw">Black &amp; White</label><input type="number" step="0.5" min="0" id="fBw" class="mono"></div>
+          <div><label for="fPartial">Partial colour</label><input type="number" step="0.5" min="0" id="fPartial" class="mono"></div>
+          <div><label for="fFull">Full colour</label><input type="number" step="0.5" min="0" id="fFull" class="mono"></div>
+        </div>
+        <label for="fThreshold">“Full colour” starts at this much colour on a page (%)</label>
+        <input type="number" min="1" max="100" step="1" id="fThreshold" class="mono">
+        <p class="hint">A page with at least this much colour is full colour; less (but some) is partial colour; none is B&amp;W. If a customer picks B&amp;W, every page is charged at the B&amp;W rate.</p>
+
+        <hr class="dash"><h2>Payment</h2>
+        <label for="fUpi">Your UPI ID</label><input type="text" id="fUpi" placeholder="shopname@okaxis" autocapitalize="none">
+        <label for="fPayee">Name shown to the payer</label><input type="text" id="fPayee" maxlength="120">
+        <p class="hint">Tip: a <b>merchant / business</b> UPI ID works more reliably — some UPI apps block amount-filled links to personal UPI IDs.</p>
+        <label for="fMode">How customers pay</label>
+        <select id="fMode">
+          <option value="utr">UPI + customer types the 12-digit UTR (no fees)</option>
+          <option value="gateway">Payment gateway (automatic confirmation, has fees)</option>
+        </select>
+        <p class="hint" id="gatewayNote"></p>
+        <label class="check"><input type="checkbox" id="fVerify"> I verify every UPI payment myself before printing</label>
+        <p class="hint">Off: a valid UTR starts printing straight away. On: you confirm each payment in your own UPI app first.<br>
+          <b>Important:</b> a typed UTR does not prove the money arrived. Only a payment gateway can confirm payments automatically.</p>
+        <label class="check"><input type="checkbox" id="fCash"> Allow “pay cash at the counter”</label>
+        <button class="btn-block" style="margin-top:12px">Save settings</button>
+        <div id="settingsMsg" class="notice hidden"></div>
+      </form>
+      <div class="receipt">
+        <h2>Login</h2>
+        <p class="hint">Signed in as <b id="meUser"></b>.</p>
+        <div class="row"><button class="btn-ghost" id="changeLogin">Change username / password</button><button class="btn-ghost" id="logout">Sign out</button></div>
+      </div>
+    </div>
+
+    <!-- QR -->
+    <div class="tab hidden" id="tab-qr">
+      <div class="receipt qrsheet" id="qrSheet">
+        <div style="text-align:center">
+          <div class="stamp big">Self-service printing</div>
+          <h1 class="qrshop" id="qrShop"></h1>
+          <div class="qr big" id="shopQr"></div>
+          <p class="qrsteps">① Scan · ② Upload PDF / photo · ③ Pay by UPI · ④ Collect prints</p>
+          <p class="mono small" id="qrUrl"></p>
+        </div>
+      </div>
+      <div class="row noprint"><button id="printQr">Print this QR poster</button></div>
+    </div>
+  </section>
+</main>
+<script src="/vendor/qrcode.js"></script>
+<script src="/shared/pricing.js"></script>
+<script src="/owner.js"></script>
+</body>
+</html>

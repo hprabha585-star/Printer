@@ -1,180 +1,102 @@
-# Quick Print — Self-Service Xerox Shop
+# Self-service Print Shop
 
-A complete, login-free print shop system:
+Customers scan the shop's QR code, upload PDF/JPG/PNG files, choose print options, pay by UPI
+(or cash), and the files print by themselves — no staff and no customer login.
 
-- **Customer view** (`public/index.html`) — reached by scanning the shop's QR
-  code (see the dashboard's "Your shop QR code" card). Add one or more files
-  to an order, set print type/pages/copies for each, edit or remove any of
-  them, then pay once for the whole order — by UPI (tap-to-pay link or
-  scannable QR, then enter the UTR) or by choosing to pay cash at the
-  counter. A live status page follows, per file.
-- **Owner dashboard** (`public/dashboard.html`, at the URL `/owner`) — real
-  sign-in with a username and password, today's/monthly revenue split by
-  cash vs UPI, a live orders table with a "confirm cash" action, pricing/UPI
-  settings, and the shop's printable QR code.
-- **Print connector for the shop PC** — two options:
-  - `print_agent_gui.py` — a simple double-click window for non-technical
-    owners (recommended). Build it into a zero-install `.exe` with
-    `BUILD_EXE.md`, then hand the owner `INSTALL_FOR_OWNER.txt`.
-  - `print_agent.py` — the original command-line version, for anyone
-    comfortable with a terminal or wanting to run it as a background service.
+**Start here:**
+- Putting it online → [`docs/HOSTINGER_DEPLOY.md`](docs/HOSTINGER_DEPLOY.md)
+- Making the shop-PC program → [`docs/BUILD_EXE.md`](docs/BUILD_EXE.md)
+- Daily use (one page for the owner) → [`docs/OWNER_GUIDE.md`](docs/OWNER_GUIDE.md)
 
-## How it fits together
+## The three parts
+| Part | Where | What it does |
+|---|---|---|
+| **Website + API** | Hostinger (Node.js + MySQL) | Checks files, prices them, takes payment, keeps the queue |
+| **Customer page** `/` | Customer's phone (QR code) | Upload → options & live price → pay → live status |
+| **Owner dashboard** `/owner` | Owner's phone / PC | Money today/month, confirm payments, review files, printers, settings, QR poster |
+| **Print Connector** | 1–3 shop computers | Picks up paid files and prints them on the right printer |
 
+## Folder layout
 ```
-Customer's phone               Hostinger (Node/Express + MySQL)         Shop PC
-(scans the shop's QR code)     ───────────────────────────────          ─────────────────
-index.html  ───add files───▶   POST /api/orders/create
-            ◀──price─────────   GET  /api/settings
-            ───UPI pay───────▶  (customer's own UPI app)
-            ───UTR───────────▶  POST /api/orders/:id/pay   (all files in
-                                 the order -> paid + queued)
-            ── or: pay cash ▶   POST /api/orders/:id/cash  (flagged, held
-                                 until the owner confirms)
-                                                                 ▲
-                                                                 │ polls every 5s
-                                                                 │
-                                 GET /api/jobs/pending ◀─────────┘  PrintShopConnector.exe
-                                 POST /api/jobs/complete ◀───────── (or print_agent.py)
-                                                                     downloads file,
-                                                                     prints it,
-                                                                     reports result
-dashboard.html (/owner) ─reads──▶ GET /api/jobs/stats, /history
-                        ─writes─▶ POST /api/settings, /api/orders/:id/confirm-cash,
-                                  /api/jobs/:id/status, /api/owner/change-credentials
-```
-
-No customer accounts exist. An order (one checkout, possibly several files)
-is identified by a short customer-facing token like `PX-4821`; each file
-within it gets its own ticket (`PX-4821-1`, `PX-4821-2`, ...) for the
-counter handoff, since files in the same order may finish printing at
-different times.
-
----
-
-## 1. Backend setup (local development)
-
-```bash
-cd print-shop-app
-npm install
-cp .env.example .env
-# edit .env: set DB_HOST/DB_USER/DB_PASSWORD/DB_NAME, OWNER_KEY, PUBLIC_BASE_URL
-npm start
+server.js                    start file (Hostinger "entry file")
+package.json, .npmrc         dependencies (pure JavaScript only; optional extras disabled)
+.env.example                 the environment variables to set in hPanel
+src/
+  config.js                  reads environment variables
+  db.js                      MySQL pool + automatic table creation/upgrade at start-up
+  auth.js                    owner login, master key, tokens
+  settings.js                shop settings
+  orders.js                  orders, payments, job states (the core rules)
+  cleanup.js                 deletes old files, closes unpaid orders
+  analyzer/                  file checking (runs in worker threads)
+    core.js sniff.js         type check by content, not by name
+    pdf.js                   PDF pages, colour per page (from drawing operations), font sizes
+    image.js                 JPG/PNG colour per page
+    microtext.js             micro-printing screening for images and scans
+  payments/                  payment-provider layer (UTR mode now; gateway plug-in ready)
+  routes/                    public, owner, connector and webhook APIs
+public/
+  index.html app.js          customer page
+  owner.html owner.js        owner dashboard
+  shared/pricing.js          the ONE pricing module (used by browser and server)
+  style.css owner.css        receipt look: paper, ink navy, stamp red, monospace prices
+connector/
+  printshop_connector.py     the desktop program (window + headless mode)
+  build_exe.bat              builds PrintShopConnector.exe with PyInstaller
+docs/                        guides + schema.sql (reference only)
+tests/                       automated tests (developer use)
 ```
 
-- `http://localhost:5000/` — customer view (this is the URL your shop's QR
-  code should point at)
-- `http://localhost:5000/owner` — owner dashboard
+## How the main pieces work
 
-The two database tables (`settings`, `jobs`) are created automatically the
-first time the server starts — there's no separate migration to run.
+**Pricing.** Each page is classed from its measured colour coverage: none → B&W, below the owner's
+threshold (default 25%) → partial colour, at/above → full colour. Choosing B&W bills every page at the
+B&W rate. The server recomputes every price from the stored analysis (the browser's numbers are
+ignored) and saves the rates and page counts on each file as an audit trail.
 
-### MySQL
+**File checking.** PDFs are read (not rendered): coloured fills, strokes, text, gradients and embedded
+images give a coloured area per page; real font sizes are measured. Lots of text under ~2pt is
+**blocked**; a little tiny text, lots of 2–3pt text, or text-like micro-lines in images/scans make the
+file **suspect** — it is accepted but held after payment until the owner opens it and decides.
+Password-protected, damaged, mislabelled, too many pages (200), oversized images and time-outs get
+friendly messages.
 
-Use the MySQL database that comes with your Hostinger plan (hPanel >
-Databases > MySQL Databases), or a local MySQL/MariaDB install for
-development. `schema.sql` has the table definitions for reference if you'd
-rather import them by hand via phpMyAdmin instead of relying on
-auto-creation.
+**Payment.** UTR mode: a UPI link/QR with the exact amount and the order token; customer types the
+12-digit UTR (one UTR = one order). With "I verify every UPI payment" ON, the order waits for the
+owner; OFF, it prints at once. Cash waits for the owner. The owner can reject a payment, which
+cancels everything not yet printing and marks it "refund if paid" (excluded from revenue).
+Gateway mode is wired in and tested with a sandbox adapter — see `src/payments/providers/README.md`.
 
-### Owner sign-in
+**Printing across several computers.** Each connector polls every 3 s. The server hands out a job
+atomically and allows only one active job per printer across all computers; a lock older than 15
+minutes (crashed computer) stops blocking that printer, but that file is never re-printed
+automatically — it shows as "stuck" and the owner can press Retry. Colour files go only to colour
+printers; B&W files go to B&W printers first, then colour printers; among equals the longest-idle
+printer is used; up to three print at once. A file counts as printed only when that printer's own
+queue is empty; after 10 minutes of a busy printer it is reported as failed with an explanation.
 
-The first time you open `/owner`, sign in with username **owner** and the
-`OWNER_KEY` from your environment variables (the one-time master key). Then
-go to Settings → "Change login details" to set your own username and
-password — day-to-day sign-in never needs hosting access again, and the
-master key still always works as a fallback if you forget.
+A colour order whose pages have no colour at all is treated as B&W for routing (it may go to a
+B&W printer — the output is identical and the price is the B&W price anyway).
 
-### Your shop's QR code
+## Known limits (honest list)
+- **Micro-printing detection is a screening aid.** Reliable for tiny text in PDFs; best-effort for
+  images and scans (single isolated lines of microtext in images can be missed; images below ~80 dpi
+  cannot be checked). The owner's eyes are the final check.
+- **In UTR mode a typed UTR cannot prove payment.** Only the owner's own UPI app (or a gateway) can.
+  Some UPI apps restrict amount-prefilled links to personal UPI IDs; a merchant UPI ID is more reliable.
+- **Office files** (Word/Excel/PowerPoint) must be saved as PDF first.
+- **Very large scanned PDFs** take longer to analyse (limit 60 s by default; `ANALYSIS_TIMEOUT_SEC`).
+- **The Windows connector needs SumatraPDF.exe** next to it (it warns clearly if missing).
+- **Gateway fees and rules change** — confirm live pricing before choosing a provider.
+- Colour coverage is an estimate from drawing areas (overlapping shapes can count twice; capped at 100%).
 
-The dashboard's "Your shop QR code" card generates a QR code that just
-points at your site's own address — print it and stick it at the counter.
-Customers scan it with their phone's camera, no app install needed, and land
-straight on the order page.
-
----
-
-## 2. Deploying — pick one
-
-- **Hostinger (recommended, matches this project's current setup):**
-  see `HOSTINGER_DEPLOY.md` for the full click-by-click hPanel walkthrough.
-- **Anywhere else that runs Node.js + MySQL** (a VPS, etc.): the same server
-  runs unmodified — just set the `DB_*`, `OWNER_KEY`, and `PUBLIC_BASE_URL`
-  environment variables to point at your MySQL database and public URL.
-
----
-
-## 3. Setting up printing on the shop PC
-
-### Recommended: the double-click connector app
-
-1. A developer builds `print_agent_gui.py` into `PrintShopConnector.exe`
-   once, following `BUILD_EXE.md` (needs a Windows machine and 5 minutes).
-2. Hand the owner `PrintShopConnector.exe` and `INSTALL_FOR_OWNER.txt`.
-3. The owner double-clicks it, types the website address and their
-   dashboard password, clicks Connect, and optionally ticks "start
-   automatically with Windows" so they never think about it again.
-
-No Python, pip, or terminal is ever involved for the owner.
-
-### Alternative: the command-line agent (for technical setups)
-
-```bash
-pip install -r requirements.txt
-export PRINT_SHOP_SERVER_URL="https://yourdomain.com"
-export PRINT_SHOP_OWNER_KEY="your-dashboard-password-or-master-key"
-python print_agent.py
+## Running the tests (developer)
+Needs a MySQL/MariaDB test database (tables in it are dropped!), Python 3 with Pillow, reportlab,
+qrcode, and `qpdf` for fixtures; Playwright for the browser test.
 ```
-
-Both agents poll every 5 seconds for paid files (regardless of which order
-each one came from), print via the OS default print handler (Windows: the
-file's default app's print verb; Linux/Mac: CUPS's `lp`), and report success
-or failure back to the server automatically.
-
-**Note:** the page range a customer selects (e.g. "pages 2-5") is used for
-pricing and shown to the shop as a label — it is not automatically extracted
-from the file before printing, since that needs PDF-editing tooling beyond
-this project's scope. The shop prints the full file and uses the range as
-guidance for what to hand over / trim at the counter.
-
----
-
-## 4. API reference
-
-| Method | Path                            | Auth        | Purpose                                   |
-|--------|----------------------------------|-------------|--------------------------------------------|
-| GET    | `/api/settings`                 | public      | Current pricing + UPI id for the customer page |
-| POST   | `/api/settings`                 | owner key   | Update pricing / UPI id / shop name        |
-| POST   | `/api/owner/login`              | public      | Username + password sign-in check          |
-| POST   | `/api/owner/change-credentials` | owner key   | Owner sets a new username and/or password  |
-| POST   | `/api/orders/create`            | public      | Upload one or more files + their settings as one order |
-| GET    | `/api/orders/:orderId`          | public      | Poll an order's status (all files)         |
-| POST   | `/api/orders/:orderId/pay`      | public      | Customer submits UTR; whole order -> paid + queued |
-| POST   | `/api/orders/:orderId/cash`     | public      | Customer chooses to pay cash at the counter |
-| POST   | `/api/orders/:orderId/confirm-cash` | owner key | Owner confirms a cash order was paid; releases it to print |
-| GET    | `/api/jobs/pending`             | owner key   | Per-file queue for the print connector     |
-| POST   | `/api/jobs/complete`            | owner key   | Print connector reports one file's success/failure |
-| POST   | `/api/jobs/:id/status`          | owner key   | Manual override on a single file (e.g. retry) |
-| GET    | `/api/jobs/history`             | owner key   | Recent files for the dashboard table       |
-| GET    | `/api/jobs/stats`               | owner key   | Revenue (cash/UPI split) + queue counts    |
-
-Owner-key routes expect header: `x-owner-key: <password>` — either the
-`OWNER_KEY` env var or the owner's dashboard-set password both work.
-
-`/owner`, `/admin`, and `/dashboard` all serve the same owner dashboard page.
-
----
-
-## 5. Production hardening ideas (not included, but straightforward to add)
-
-- Swap local disk uploads for S3/Cloudinary via a multer storage adapter.
-- Auto-verify UPI payments with a payment gateway webhook (Razorpay/Cashfree
-  UPI intents) instead of trusting the customer-entered UTR — the schema
-  already has `paymentStatus`/`paymentMethod`/`utr` fields ready for that.
-- Add rate limiting (e.g. `express-rate-limit`) on `/api/orders/create` to
-  stop upload spam.
-- Auto-delete files from `/uploads` and the print connector's `/downloads`
-  folder once a job is marked `completed`, to save disk space.
-- If you want the printer to physically restrict output to the selected
-  page range, add a PDF-manipulation step (e.g. `pdf-lib` or `pikepdf`) in
-  the print connector before sending the file to the printer.
+python3 tests/fixtures/make_fixtures.py               # generate the test files
+node tests/analyzer.test.js                           # analyser accuracy (46 fixtures)
+DB_USER=… DB_PASSWORD=… DB_NAME=printshop_test node tests/api.test.js         # API flows
+DB_USER=… DB_PASSWORD=… DB_NAME=printshop_test node tests/connectors.test.js  # several connectors
+DB_USER=… DB_PASSWORD=… DB_NAME=printshop_test python3 tests/browser_e2e.py   # pages in a browser
+```
