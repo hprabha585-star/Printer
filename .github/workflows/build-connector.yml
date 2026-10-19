@@ -1,0 +1,47 @@
+# Builds the Windows Print Connector on GitHub's own Windows computer.
+# Result: a "PrintShop" folder (PrintShopConnector.exe + SumatraPDF.exe) to download
+# from the run page → "Artifacts". No Python needed on your own computer.
+name: Build Print Connector (.exe)
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: ["connector/**", ".github/workflows/build-connector.yml"]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r connector/requirements.txt
+
+      - name: Build PrintShopConnector.exe
+        working-directory: connector
+        run: python -m PyInstaller --onefile --windowed --name PrintShopConnector --hidden-import win32print printshop_connector.py
+
+      - name: Add SumatraPDF (free PDF printer helper)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path PrintShop | Out-Null
+          Copy-Item connector/dist/PrintShopConnector.exe PrintShop/
+          Invoke-WebRequest -Uri "https://www.sumatrapdfreader.org/dl/rel/3.5.2/SumatraPDF-3.5.2-64.zip" -OutFile sumatra.zip
+          Expand-Archive sumatra.zip -DestinationPath sumatra
+          $exe = Get-ChildItem sumatra -Filter *.exe -Recurse | Select-Object -First 1
+          Copy-Item $exe.FullName PrintShop/SumatraPDF.exe
+          "Copy this whole PrintShop folder to C:\PrintShop on each shop computer and double-click PrintShopConnector.exe." | Out-File PrintShop/README.txt -Encoding utf8
+          Get-ChildItem PrintShop
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PrintShop
+          path: PrintShop/
+          retention-days: 90
