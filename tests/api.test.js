@@ -1,6 +1,7 @@
 /*
- * End-to-end API tests against a REAL MySQL/MariaDB database.
- *   DB_USER=.. DB_PASSWORD=.. DB_NAME=printshop_test node tests/api.test.js
+ * End-to-end API tests of the PHP site against a REAL MySQL/MariaDB database.
+ * Starts PHP's built-in server (tests/router.php mimics .htaccess).
+ *   cd tests && npm install && DB_USER=.. DB_PASSWORD=.. DB_NAME=printshop_test node api.test.js
  * WARNING: drops and recreates all tables in DB_NAME.
  */
 'use strict';
@@ -16,12 +17,22 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
-const db = require('../src/db');
-const { createApp } = require('../src/app');
-const { runCleanup } = require('../src/cleanup');
-const mockGateway = require('../src/payments/providers/mock');
+const { execFileSync } = require('child_process');
+const db = require('./lib/db');
+const php = require('./lib/php');
+const SITE = path.join(__dirname, '..', 'public_html');
+fs.mkdirSync(process.env.STORAGE_DIR, { recursive: true });
+const runCleanup = () => execFileSync('php', [path.join(SITE, 'app', 'cli.php'), 'cleanup'], { env: process.env });
+// remove the recorded schema version so the next request runs the migration
+const forceMigrate = async () => { try { fs.unlinkSync(path.join(process.env.STORAGE_DIR, 'schema.version')); } catch (_) {} await call('GET', '/api/settings'); };
+const mockGateway = { _set(ref, type, amountPaise) {
+  const f = path.join(process.env.STORAGE_DIR, 'mock-gateway.json');
+  let d = {}; try { d = JSON.parse(fs.readFileSync(f, 'utf8')); } catch (_) {}
+  d[ref] = { type, amountPaise }; fs.writeFileSync(f, JSON.stringify(d));
+} };
 
 const FIX = path.join(__dirname, 'fixtures', 'out');
+process.env.APP_ENV = 'test';
 let BASE, server, ownerKey;
 const results = [];
 
@@ -51,6 +62,9 @@ let utrCounter = 100000000000 + Math.floor(Math.random() * 1e9);
 const newUtr = () => String(++utrCounter);
 
 (async () => {
+  server = await php.start({ PORT: 0 });
+  BASE = server.base;
+
   /* ---------- migration of an OLD database ---------- */
   await test('migrate: an older database is upgraded in place without losing data', async () => {
     const tables = await db.q('SHOW TABLES');
@@ -60,8 +74,8 @@ const newUtr = () => String(++utrCounter);
     await db.q("INSERT INTO settings (id, shop_name, rate_bw) VALUES (1, 'Old Shop', 3.00)");
     await db.q("CREATE TABLE printers (id INT AUTO_INCREMENT PRIMARY KEY, label VARCHAR(80) NOT NULL)");
     await db.q("INSERT INTO printers (label) VALUES ('Old Printer')");
-    await db.migrate();
-    await db.migrate(); // idempotent
+    await forceMigrate();
+    await forceMigrate(); // idempotent
     const [s] = await db.q('SELECT * FROM settings WHERE id = 1');
     assert.strictEqual(s.shop_name, 'Old Shop');
     assert.strictEqual(Number(s.rate_bw), 3);
@@ -73,13 +87,10 @@ const newUtr = () => String(++utrCounter);
     // fresh install path: defaults
     await db.q('DELETE FROM printers');
     await db.q("UPDATE settings SET shop_name = 'Test Xerox', rate_bw = 2 WHERE id = 1");
-    await db.migrate();
+    await forceMigrate();
     assert.strictEqual((await db.q('SELECT COUNT(*) n FROM printers'))[0].n, 3);
   });
 
-  const app = createApp();
-  server = app.listen(0);
-  BASE = `http://127.0.0.1:${server.address().port}`;
 
   /* ---------- public settings & login ---------- */
   await test('public settings never expose owner credentials', async () => {
@@ -529,7 +540,7 @@ const newUtr = () => String(++utrCounter);
     await db.q('UPDATE uploads SET created_at = UTC_TIMESTAMP() - INTERVAL 7 HOUR WHERE id = ?', [id]);
     const o = (await order([{ upload_id: up.photo.upload_id, mode: 'bw' }])).body;
     await db.q('UPDATE orders SET created_at = UTC_TIMESTAMP() - INTERVAL 25 HOUR WHERE token = ?', [o.token]);
-    await runCleanup();
+    runCleanup();
     assert.strictEqual((await db.q('SELECT COUNT(*) n FROM uploads WHERE id = ?', [id]))[0].n, 0);
     assert.ok(!fs.existsSync(fp));
     assert.strictEqual((await status(o)).overall, 'cancelled');
@@ -537,13 +548,10 @@ const newUtr = () => String(++utrCounter);
 
   /* ---------- rate limit & size limit (separate server process with low limits) ---------- */
   await test('rate limit on analyse (per client IP behind proxy) and upload size cap', async () => {
-    const port = 39000 + Math.floor(Math.random() * 500);
-    const child = spawn(process.execPath, [path.join(__dirname, '..', 'server.js')], {
-      env: { ...process.env, PORT: String(port), ANALYSE_RATE_LIMIT: '3', MAX_UPLOAD_MB: '1' }, stdio: 'ignore',
-    });
+    const child = await php.start({ ANALYSE_RATE_LIMIT: '3', MAX_UPLOAD_MB: '1', TRUST_PROXY: '1' });
+    const port = child.port;
     try {
       const B = `http://127.0.0.1:${port}`;
-      for (let i = 0; i < 40; i++) { try { await fetch(B + '/api/settings'); break; } catch (_) { await new Promise((z) => setTimeout(z, 250)); } }
       const up1 = (ip) => {
         const fd = new FormData(); fd.append('file', new Blob([fs.readFileSync(path.join(FIX, 'text.pdf'))]), 'text.pdf');
         return fetch(B + '/api/analyse', { method: 'POST', body: fd, headers: { 'X-Forwarded-For': ip } });
@@ -559,7 +567,7 @@ const newUtr = () => String(++utrCounter);
     } finally { child.kill(); }
   });
 
-  server.close();
+  server.kill();
   await db.close();
   const failed = results.filter((r) => !r[0]).length;
   console.log(`\nAPI: ${results.length - failed} passed, ${failed} failed`);

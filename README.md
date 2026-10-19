@@ -1,102 +1,99 @@
-# Self-service Print Shop
+# Self-service Print Shop (PHP + MySQL edition)
 
 Customers scan the shop's QR code, upload PDF/JPG/PNG files, choose print options, pay by UPI
 (or cash), and the files print by themselves — no staff and no customer login.
 
-**Start here:**
-- Putting it online → [`docs/HOSTINGER_DEPLOY.md`](docs/HOSTINGER_DEPLOY.md)
+This edition runs on ordinary **PHP shared hosting** (MilesWeb, or any host with PHP 8.1+ and MySQL/MariaDB).
+No Node.js, no Composer, no command line needed.
+
+**Start here**
+- Putting it online → [`docs/MILESWEB_DEPLOY.md`](docs/MILESWEB_DEPLOY.md)
 - Making the shop-PC program → [`docs/BUILD_EXE.md`](docs/BUILD_EXE.md)
 - Daily use (one page for the owner) → [`docs/OWNER_GUIDE.md`](docs/OWNER_GUIDE.md)
 
-## The three parts
-| Part | Where | What it does |
-|---|---|---|
-| **Website + API** | Hostinger (Node.js + MySQL) | Checks files, prices them, takes payment, keeps the queue |
-| **Customer page** `/` | Customer's phone (QR code) | Upload → options & live price → pay → live status |
-| **Owner dashboard** `/owner` | Owner's phone / PC | Money today/month, confirm payments, review files, printers, settings, QR poster |
-| **Print Connector** | 1–3 shop computers | Picks up paid files and prints them on the right printer |
-
-## Folder layout
+## What's in this package
 ```
-server.js                    start file (Hostinger "entry file")
-package.json, .npmrc         dependencies (pure JavaScript only; optional extras disabled)
-.env.example                 the environment variables to set in hPanel
-src/
-  config.js                  reads environment variables
-  db.js                      MySQL pool + automatic table creation/upgrade at start-up
-  auth.js                    owner login, master key, tokens
-  settings.js                shop settings
-  orders.js                  orders, payments, job states (the core rules)
-  cleanup.js                 deletes old files, closes unpaid orders
-  analyzer/                  file checking (runs in worker threads)
-    core.js sniff.js         type check by content, not by name
-    pdf.js                   PDF pages, colour per page (from drawing operations), font sizes
-    image.js                 JPG/PNG colour per page
-    microtext.js             micro-printing screening for images and scans
-  payments/                  payment-provider layer (UTR mode now; gateway plug-in ready)
-  routes/                    public, owner, connector and webhook APIs
-public/
-  index.html app.js          customer page
-  owner.html owner.js        owner dashboard
-  shared/pricing.js          the ONE pricing module (used by browser and server)
-  style.css owner.css        receipt look: paper, ink navy, stamp red, monospace prices
-connector/
-  printshop_connector.py     the desktop program (window + headless mode)
-  build_exe.bat              builds PrintShopConnector.exe with PyInstaller
-docs/                        guides + schema.sql (reference only)
-tests/                       automated tests (developer use)
+website.zip           ← upload this to the hosting and extract it. Inside it:
+  .htaccess             web server rules: /api → api.php, protects app/ and storage/, forces https
+  .user.ini             PHP upload/memory limits
+  api.php               entry point for every /api/... request
+  setup.php             one-time setup page (/setup): database details + master key
+  index.html, app.js    customer page          owner.html, owner.js   owner dashboard
+  shared/pricing.js     browser pricing (mirrored exactly by app/Pricing.php)
+  style.css, owner.css  receipt look: paper, ink navy, stamp red, monospace prices
+  app/                  PHP code (never web-readable)
+    Config.php  Db.php (tables created/upgraded automatically)  Http.php  Auth.php
+    Settings.php  Pricing.php  Orders.php (core rules)  Upload.php  Owner.php  Connector.php
+    Cleanup.php (no cron needed)  Payments.php + payments/ (gateway plug-in layer)
+    analyzer/             file checking: PdfFile (PDF reader + decryption), PdfPage (colour, font
+                          sizes), Raster + Microtext (images/scans), Analyzer (entry point)
+  storage/              customer files while waiting to print (never web-readable)
+connector/              the desktop Print Connector (unchanged; works with this edition)
+docs/                   guides, schema.sql (reference only), TEST_REPORT.md
+tests/                  automated tests (developer use, not uploaded)
 ```
 
 ## How the main pieces work
 
 **Pricing.** Each page is classed from its measured colour coverage: none → B&W, below the owner's
 threshold (default 25%) → partial colour, at/above → full colour. Choosing B&W bills every page at the
-B&W rate. The server recomputes every price from the stored analysis (the browser's numbers are
-ignored) and saves the rates and page counts on each file as an audit trail.
+B&W rate. The server recomputes every price from stored analysis (browser numbers are ignored) and
+saves the rates and page counts on each file as an audit trail.
 
-**File checking.** PDFs are read (not rendered): coloured fills, strokes, text, gradients and embedded
-images give a coloured area per page; real font sizes are measured. Lots of text under ~2pt is
-**blocked**; a little tiny text, lots of 2–3pt text, or text-like micro-lines in images/scans make the
-file **suspect** — it is accepted but held after payment until the owner opens it and decides.
-Password-protected, damaged, mislabelled, too many pages (200), oversized images and time-outs get
-friendly messages.
+**File checking (pure PHP + GD).** PDFs are read, not rendered: coloured fills, strokes, text,
+gradients, patterns, forms and embedded images give a coloured area per page; real font sizes are
+measured (invisible OCR text is ignored). PDFs that are only protected against editing (common for
+bank statements and e-tickets) are decrypted and accepted; PDFs that need a password to open are
+refused with a friendly message. Lots of text under ~2pt is **blocked**; a little tiny text, lots of
+2–3pt text, or microtext-like line patterns in images/scans make the file **suspect** — accepted, but
+held after payment until the owner opens it and decides.
 
-**Payment.** UTR mode: a UPI link/QR with the exact amount and the order token; customer types the
-12-digit UTR (one UTR = one order). With "I verify every UPI payment" ON, the order waits for the
-owner; OFF, it prints at once. Cash waits for the owner. The owner can reject a payment, which
-cancels everything not yet printing and marks it "refund if paid" (excluded from revenue).
-Gateway mode is wired in and tested with a sandbox adapter — see `src/payments/providers/README.md`.
+**Payment.** UTR mode: UPI link/QR with the exact amount and order token; the customer types the
+12-digit UTR (one UTR = one order). "I verify every UPI payment" ON → waits for the owner; OFF →
+prints at once. Cash waits for the owner. Rejecting a payment cancels everything not yet printing and
+marks it "refund if paid" (excluded from revenue). Gateway mode is wired in and tested with a sandbox
+adapter — see `public_html/app/payments/README.md`.
 
-**Printing across several computers.** Each connector polls every 3 s. The server hands out a job
-atomically and allows only one active job per printer across all computers; a lock older than 15
-minutes (crashed computer) stops blocking that printer, but that file is never re-printed
-automatically — it shows as "stuck" and the owner can press Retry. Colour files go only to colour
-printers; B&W files go to B&W printers first, then colour printers; among equals the longest-idle
-printer is used; up to three print at once. A file counts as printed only when that printer's own
-queue is empty; after 10 minutes of a busy printer it is reported as failed with an explanation.
+**Printing across several computers.** The database hands out each file atomically and allows one
+active file per printer across all computers; a lock older than 15 minutes (crashed computer) stops
+blocking the printer, but that file is never re-printed automatically — it shows as "stuck" and the
+owner can press Retry. Colour files only go to colour printers; B&W files to B&W printers first.
 
-A colour order whose pages have no colour at all is treated as B&W for routing (it may go to a
-B&W printer — the output is identical and the price is the B&W price anyway).
+## Differences from the Node.js edition
+- **Secrets** live in `app/config.php` (written by the setup page, never web-readable) because shared
+  PHP hosting has no environment-variable screen. Real environment variables still override it.
+- **Pricing** is mirrored in `app/Pricing.php`; a test checks it gives identical results to
+  `shared/pricing.js` on 5,000 random orders.
+- **File checks** run inside the upload request (at most 2 at a time, 120-second limit) instead of a
+  worker thread.
+- **Housekeeping** piggybacks on the shop computer's heartbeat — no cron job.
 
 ## Known limits (honest list)
 - **Micro-printing detection is a screening aid.** Reliable for tiny text in PDFs; best-effort for
-  images and scans (single isolated lines of microtext in images can be missed; images below ~80 dpi
-  cannot be checked). The owner's eyes are the final check.
+  images and scans (an isolated single line of microtext in an image can be missed; images below
+  ~80 dpi cannot be checked; at most 12 images per PDF are checked). The owner's eyes are the final check.
+- Images inside PDFs stored as **JPEG 2000, JBIG2 or CCITT fax**, or as **CMYK JPEG**, cannot be decoded
+  by PHP's image library: their colour is not counted and they are not checked for microtext.
 - **In UTR mode a typed UTR cannot prove payment.** Only the owner's own UPI app (or a gateway) can.
-  Some UPI apps restrict amount-prefilled links to personal UPI IDs; a merchant UPI ID is more reliable.
-- **Office files** (Word/Excel/PowerPoint) must be saved as PDF first.
-- **Very large scanned PDFs** take longer to analyse (limit 60 s by default; `ANALYSIS_TIMEOUT_SEC`).
-- **The Windows connector needs SumatraPDF.exe** next to it (it warns clearly if missing).
-- **Gateway fees and rules change** — confirm live pricing before choosing a provider.
-- Colour coverage is an estimate from drawing areas (overlapping shapes can count twice; capped at 100%).
+  Some UPI apps restrict amount-filled links to personal UPI IDs; a merchant UPI ID is more reliable.
+- **Office files** must be saved as PDF first.
+- **Very large scanned PDFs** take longer (about 2–4 seconds per scanned page on a typical server).
+- The site must be at the top of a domain or sub-domain (not in a sub-folder).
+- The Windows Print Connector needs SumatraPDF.exe next to it.
+- Gateway fees and rules change — confirm live pricing before choosing a provider.
 
 ## Running the tests (developer)
-Needs a MySQL/MariaDB test database (tables in it are dropped!), Python 3 with Pillow, reportlab,
-qrcode, and `qpdf` for fixtures; Playwright for the browser test.
+First extract the website for the tests: `unzip website.zip -d public_html`.
+Needs PHP 8.1+ (gd, pdo_mysql, mbstring), Node 18+, Python 3 with Pillow, reportlab, qrcode,
+qpdf and LibreOffice for fixtures, Playwright for the browser test, and a MySQL/MariaDB test
+database (its tables are dropped!).
 ```
-python3 tests/fixtures/make_fixtures.py               # generate the test files
-node tests/analyzer.test.js                           # analyser accuracy (46 fixtures)
-DB_USER=… DB_PASSWORD=… DB_NAME=printshop_test node tests/api.test.js         # API flows
-DB_USER=… DB_PASSWORD=… DB_NAME=printshop_test node tests/connectors.test.js  # several connectors
-DB_USER=… DB_PASSWORD=… DB_NAME=printshop_test python3 tests/browser_e2e.py   # pages in a browser
+python3 tests/fixtures/make_fixtures.py && python3 tests/fixtures/make_extra_fixtures.py
+php tests/analyzer_test.php                       # 64 files
+cd tests && npm install
+DB_USER=… DB_PASSWORD=… DB_NAME=printshop_test node api.test.js
+DB_USER=… DB_PASSWORD=… DB_NAME=printshop_test node connectors.test.js
+DB_USER=… DB_PASSWORD=… DB_NAME=printshop_test node setup.test.js
+node pricing_parity.test.js
+DB_USER=… DB_PASSWORD=… DB_NAME=printshop_test python3 browser_e2e.py
 ```

@@ -1,0 +1,15 @@
+# private settings written by /setup — NEVER commit (contains passwords and the master key)
+public_html/app/config.php
+printshop-config.php
+# customer files and runtime data
+public_html/storage/*
+!public_html/storage/.htaccess
+# developer/test leftovers
+tests/node_modules/
+tests/fixtures/out/
+tests/screens/
+connector/build/
+connector/dist/
+**/__pycache__/
+*.zip
+.DS_Store

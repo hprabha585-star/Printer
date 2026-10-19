@@ -1,5 +1,5 @@
--- Schema reference (generated from a real database after automatic migration).
--- You do NOT need to run this: server.js creates and upgrades these tables at every start.
+-- Schema reference (generated from a real database after automatic setup).
+-- You do NOT need to run this: the site creates and upgrades these tables by itself.
 
 CREATE TABLE `settings` (
   `id` tinyint(4) NOT NULL,
@@ -17,6 +17,7 @@ CREATE TABLE `settings` (
   `owner_username` varchar(80) DEFAULT NULL,
   `owner_password_hash` varchar(255) DEFAULT NULL,
   `session_version` int(11) NOT NULL DEFAULT 1,
+  `last_cleanup` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
@@ -141,6 +142,14 @@ CREATE TABLE `payment_events` (
   `received_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_payment_event` (`provider`,`event_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+;
+
+CREATE TABLE `rate_limits` (
+  `k` varchar(120) NOT NULL,
+  `window_start` int(11) NOT NULL,
+  `hits` int(11) NOT NULL,
+  PRIMARY KEY (`k`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
 ;
 

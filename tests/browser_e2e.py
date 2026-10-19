@@ -1,7 +1,7 @@
 """
 Browser test of the customer page and owner dashboard (developer use).
-Needs: pip install playwright && playwright install chromium, and a running server
-(started by this script) with a fresh test database.
+Needs: pip install playwright && playwright install chromium, PHP 8.1+ and a fresh test database.
+The PHP site is started by this script on PHP's built-in server.
   DB_USER=.. DB_PASSWORD=.. DB_NAME=printshop_test python3 tests/browser_e2e.py [screenshot_dir]
 """
 import os, subprocess, sys, time, json, urllib.request
@@ -14,13 +14,17 @@ os.makedirs(SHOTS, exist_ok=True)
 PORT = 3871
 BASE = f'http://127.0.0.1:{PORT}'
 MASTER = 'test-master-key-123'
-env = dict(os.environ, NODE_ENV='test', OWNER_MASTER_KEY=MASTER, PORT=str(PORT), STORAGE_DIR='/tmp/printshop-e2e-storage')
+env = dict(os.environ, APP_ENV='test', OWNER_MASTER_KEY=MASTER, STORAGE_DIR='/tmp/printshop-php-e2e-storage', PHP_CLI_SERVER_WORKERS='4')
+TESTS = os.path.join(ROOT, 'tests')
 
 # fresh database
 subprocess.run(['node', '-e', """
-const db=require('./src/db');(async()=>{for(const t of await db.q('SHOW TABLES'))await db.q('DROP TABLE `'+Object.values(t)[0]+'`');await db.close();})()"""],
-               cwd=ROOT, env=env, check=True)
-server = subprocess.Popen(['node', 'server.js'], cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+const db=require('./lib/db');(async()=>{for(const t of await db.q('SHOW TABLES'))await db.q('DROP TABLE `'+Object.values(t)[0]+'`');await db.close();})()"""],
+               cwd=TESTS, env=env, check=True)
+subprocess.run(['rm', '-rf', env['STORAGE_DIR']])
+server = subprocess.Popen(['php', '-d', 'upload_max_filesize=30M', '-d', 'post_max_size=32M', '-S', f'127.0.0.1:{PORT}',
+                           '-t', os.path.join(ROOT, 'public_html'), os.path.join(TESTS, 'router.php')],
+                          env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 for _ in range(50):
     try:
         urllib.request.urlopen(BASE + '/api/settings'); break

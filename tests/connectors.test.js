@@ -14,15 +14,13 @@ const path = require('path');
 const { spawn } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
+const php = require('./lib/php');
 const FIX = path.join(__dirname, 'fixtures', 'out');
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'connectors-'));
-const PORT = 38000 + Math.floor(Math.random() * 900);
-const BASE = `http://127.0.0.1:${PORT}`;
+let BASE;
 const MASTER = 'test-master-key-123';
-const env = { ...process.env, NODE_ENV: 'test', OWNER_MASTER_KEY: MASTER, PORT: String(PORT), STALE_LOCK_SEC: '8',
-  ANALYSE_RATE_LIMIT: '1000', STORAGE_DIR: path.join(TMP, 'storage') };
-process.env.DB_NAME = env.DB_NAME;
-const db = require('../src/db');
+const env = { OWNER_MASTER_KEY: MASTER, STALE_LOCK_SEC: '8', ANALYSE_RATE_LIMIT: '1000', STORAGE_DIR: path.join(TMP, 'storage') };
+const db = require('./lib/db');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const results = [];
 let key;
@@ -78,11 +76,11 @@ const LABEL = (pc, local) => ({ Colour: 'Printer 1 - Colour', Mono1: 'Printer 2 
 (async () => {
   // fresh database + server
   for (const t of await db.q('SHOW TABLES')) await db.q(`DROP TABLE \`${Object.values(t)[0]}\``);
-  await db.migrate();
-  const server = spawn(process.execPath, [path.join(ROOT, 'server.js')], { env, stdio: ['ignore', 'pipe', 'pipe'] });
-  let serverOut = ''; server.stdout.on('data', (d) => { serverOut += d; }); server.stderr.on('data', (d) => { serverOut += d; });
+  try { fs.unlinkSync(path.join(env.STORAGE_DIR, 'schema.version')); } catch (_) {}
+  const server = await php.start(env);
+  BASE = server.base;
   procs.push(server);
-  await waitFor(async () => { try { await fetch(BASE + '/api/settings'); return true; } catch (_) { return false; } }, 15000, 'server');
+  let serverOut = '';
   key = (await call('POST', '/api/owner/login', { master_key: MASTER })).token;
   await call('PUT', '/api/owner/settings', { verify_upi: false, upi_id: 'shop@okaxis' });
   const text = await analyse('text.pdf');
@@ -197,7 +195,7 @@ const LABEL = (pc, local) => ({ Colour: 'Printer 1 - Colour', Mono1: 'Printer 2 
   for (const p of procs) { try { p.kill(); } catch (_) {} }
   await db.close();
   const failed = results.filter((r) => !r).length;
-  if (failed) console.log('\n--- server output ---\n' + serverOut.slice(-3000));
+  if (failed) console.log('\n--- server output ---\n' + (serverOut || procs[0].log || '').slice(-3000));
   console.log(`\nConnectors: ${results.length - failed} passed, ${failed} failed`);
   process.exit(failed ? 1 : 0);
 })().catch((e) => { console.error(e); for (const p of procs) { try { p.kill(); } catch (_) {} } process.exit(1); });

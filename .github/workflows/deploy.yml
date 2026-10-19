@@ -1,0 +1,46 @@
+# Deploys the website to MilesWeb (or any PHP host) by FTP every time you push to "main".
+# Set these once in GitHub: Settings → Secrets and variables → Actions → New repository secret
+#   FTP_SERVER      e.g. ftp.printer.work.gd  or the server IP from MilesWeb
+#   FTP_USERNAME    your FTP user
+#   FTP_PASSWORD    its password
+#   FTP_SERVER_DIR  ./   when the FTP account opens straight into the site folder (recommended),
+#                   otherwise the site folder ending with "/", e.g. printer.work.gd/
+# Your private settings (app/config.php) and customer files (storage/) are never touched.
+name: Deploy to MilesWeb
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check PHP files for mistakes
+        run: |
+          set -e
+          for f in $(find public_html -name '*.php'); do php -l "$f" > /dev/null; done
+          test ! -f public_html/app/config.php || { echo "app/config.php must not be in the repository (it holds your passwords)"; exit 1; }
+
+      - name: Upload website by FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps          # if the upload fails with a TLS/SSL error, change this to: ftp
+          security: loose         # accept the host's certificate even if its name doesn't match the server address
+          local-dir: ./public_html/
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            app/config.php
+            storage/**
