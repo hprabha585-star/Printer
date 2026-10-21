@@ -1,6 +1,6 @@
 # Builds the Windows Print Connector on GitHub's own Windows computer.
-# Result: a "PrintShop" folder (PrintShopConnector.exe + SumatraPDF.exe) to download
-# from the run page → "Artifacts". No Python needed on your own computer.
+# Result: PrintShop.zip (PrintShopConnector.exe + SumatraPDF.exe), downloadable from the
+# repository's main page → "Releases" → "Print Connector". No Python needed on your computer.
 name: Build Print Connector (.exe)
 
 on:
@@ -8,6 +8,9 @@ on:
   push:
     branches: [main]
     paths: ["connector/**", ".github/workflows/build-connector.yml"]
+
+permissions:
+  contents: write   # lets the workflow publish the download as a Release
 
 jobs:
   build:
@@ -39,6 +42,16 @@ jobs:
           Copy-Item $exe.FullName PrintShop/SumatraPDF.exe
           "Copy this whole PrintShop folder to C:\PrintShop on each shop computer and double-click PrintShopConnector.exe." | Out-File PrintShop/README.txt -Encoding utf8
           Get-ChildItem PrintShop
+          Compress-Archive -Path PrintShop -DestinationPath PrintShop.zip -Force
+
+      - name: Publish the download (Releases → Print Connector)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete connector --yes --cleanup-tag 2>$null
+          $global:LASTEXITCODE = 0
+          gh release create connector PrintShop.zip --title "Print Connector" --notes "Download PrintShop.zip, extract it to C:\PrintShop on the shop computer and double-click PrintShopConnector.exe. Built from commit ${{ github.sha }}." --target ${{ github.sha }}
 
       - uses: actions/upload-artifact@v4
         with:
